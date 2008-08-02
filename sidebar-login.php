@@ -4,7 +4,7 @@ Plugin Name: Sidebar Login
 Description: Adds a sidebar widget to let users login
 Author: Mike Jolley
 Plugin URI: http://blue-anvil.com
-Version: 2
+Version: 2.0
 Author URI: http://blue-anvil.com
 */
 function sidebarlogin() {
@@ -65,12 +65,23 @@ function widget_sidebarlogin($args) {
 			<input type="hidden" name="sidebarlogin_posted" value="1" />
 			<input type="hidden" name="testcookie" value="1" /></p>
 			</form>
-			<?php 
+			<?php 			
 			// Output other links
-			echo '<ul class="sidebarlogin_otherlinks">';
-			if (get_option('users_can_register')) { ?>
-				<li><a href="<?php bloginfo('wpurl'); ?>/wp-login.php?action=register"><?php _e('Register') ?></a></li>
-			<?php } ?>
+			echo '<ul class="sidebarlogin_otherlinks">';		
+			if (get_option('users_can_register')) { 
+				// MU FIX
+				global $wpmu_version;
+				if (empty($wpmu_version)) {
+					?>
+						<li><a href="<?php bloginfo('wpurl'); ?>/wp-login.php?action=register"><?php _e('Register') ?></a></li>
+					<?php 
+				} else {
+					?>
+						<li><a href="<?php bloginfo('wpurl'); ?>/wp-signup.php"><?php _e('Register') ?></a></li>
+					<?php 
+				}
+			}
+			?>
 			<li><a href="<?php bloginfo('wpurl'); ?>/wp-login.php?action=lostpassword" title="<?php _e('Password Lost and Found') ?>"><?php _e('Lost your password?') ?></a></li>
 			</ul>
 			<?php	
@@ -86,7 +97,7 @@ function widget_sidebarlogin_init() {
 function widget_sidebarlogin_check() {
 	if ($_POST['sidebarlogin_posted'] || $_GET['logout']) {
 		// Includes
-		include_once('wp-settings.php');
+		//include_once('wp-settings.php');
 		global $myerrors;
 		$myerrors = new WP_Error();
 		//Set a cookie now to see if they are supported by the browser.
@@ -153,6 +164,9 @@ function current_url($url = '') {
 		$pageURL = str_replace('?logout=true','',$pageURL);
 		$pageURL = str_replace('&logout=true','',$pageURL);
 	}
+	//————–added by mick 
+	if (!strstr(get_bloginfo('wpurl'),'www.')) $pageURL = str_replace('www.','', $pageURL );
+	//——————–
 	return $pageURL;
 }
 endif;
