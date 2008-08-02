@@ -23,7 +23,7 @@ It lets users login, and then redirects them back to the page they logged in fro
    1. Unzip and upload the php file to your wordpress plugin directory
    2. Activate the plugin
    3. For a sidebar widget: Goto the design > widgets tab - Drag the widget into a sidebar and save!
-   4. To use the template tag: Add <?php sidebarlogin(); ?> to your template.
+   4. To use the template tag: Add &lt;?php sidebarlogin(); ?&gt; to your template.
 
 == Screenshots ==
 
