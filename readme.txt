@@ -6,7 +6,7 @@ Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.0
 Tested up to: 2.6
-Stable tag: 2.0
+Stable tag: 2.1
 
 Plugin with interface for uploading and managing download files, inserting download links in posts, and monitoring download hits.
 

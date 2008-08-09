@@ -4,7 +4,7 @@ Plugin Name: Sidebar Login
 Description: Adds a sidebar widget to let users login
 Author: Mike Jolley
 Plugin URI: http://blue-anvil.com
-Version: 2.0
+Version: 2.1
 Author URI: http://blue-anvil.com
 */
 function sidebarlogin() {
@@ -23,7 +23,7 @@ function widget_sidebarlogin($args) {
 		if (isset($user_ID)) {
 			// User is logged in
 			$user_info = get_userdata($user_ID);
-			echo $before_widget . $before_title . __("Welcome "). $user_info->user_name . $after_title;
+			echo $before_widget . $before_title . __("Welcome "). $user_info->user_login . $after_title;
 			echo '<ul class="pagenav">
 					<li class="page_item"><a href="'.get_bloginfo('wpurl').'/wp-admin">'.__('Dashboard').'</a></li>
 					<li class="page_item"><a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php">'.__('Profile').'</a></li>
