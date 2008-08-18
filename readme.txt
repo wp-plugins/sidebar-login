@@ -1,14 +1,12 @@
 === Plugin Name ===
 Contributors: jolley_small
-Author URI: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
-Plugin URI: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
 Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
 Tags: login, sidebar, widget, sidebar login, meta, form, register
-Requires at least: 2.0
+Requires at least: 2.5
 Tested up to: 2.6
-Stable tag: 2.1
+Stable tag: 2.1.1
 
-Plugin with interface for uploading and managing download files, inserting download links in posts, and monitoring download hits.
+Adds a sidebar widget to let users login.
 
 == Description ==
 

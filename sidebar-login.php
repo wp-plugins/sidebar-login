@@ -1,10 +1,10 @@
 <?php
 /*
 Plugin Name: Sidebar Login
+Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
+Version: 2.1.1
 Author: Mike Jolley
-Plugin URI: http://blue-anvil.com
-Version: 2.1
 Author URI: http://blue-anvil.com
 */
 function sidebarlogin() {
