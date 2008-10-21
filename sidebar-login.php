@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.1.2
+Version: 2.1.3
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -23,7 +23,7 @@ function widget_sidebarlogin($args) {
 		if (isset($user_ID)) {
 			// User is logged in
 			$user_info = get_userdata($user_ID);
-			echo $before_widget . $before_title . __("Welcome "). $user_info->user_login . $after_title;
+			echo $before_widget . $before_title . __("Welcome "). $user_info->display_name . $after_title;
 			echo '<ul class="pagenav">
 					<li class="page_item"><a href="'.get_bloginfo('wpurl').'/wp-admin/">'.__('Dashboard').'</a></li>
 					<li class="page_item"><a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php">'.__('Profile').'</a></li>
@@ -56,7 +56,7 @@ function widget_sidebarlogin($args) {
 					echo '<p class="message">' . apply_filters('login_messages', $messages) . "</p>\n";
 			}
 			// login form
-			echo '<form action="'.current_url().'" method="post" >';
+			echo '<form action="'.current_url().'" method="post">';
 			?>
 			<p><label for="user_login"><?php _e('Username:') ?><br/><input name="log" value="<?php echo attribute_escape(stripslashes($_POST['log'])); ?>" class="mid" id="user_login" type="text" /></label></p>
 			<p><label for="user_pass"><?php _e('Password:') ?><br/><input name="pwd" class="mid" id="user_pass" type="password" /></label></p>
@@ -97,7 +97,6 @@ function widget_sidebarlogin_init() {
 function widget_sidebarlogin_check() {
 	if ($_POST['sidebarlogin_posted'] || $_GET['logout']) {
 		// Includes
-		//include_once('wp-settings.php');
 		global $myerrors;
 		$myerrors = new WP_Error();
 		//Set a cookie now to see if they are supported by the browser.
@@ -107,6 +106,11 @@ function widget_sidebarlogin_check() {
 		// Logout
 		if ($_GET['logout']==true) {
 			nocache_headers();
+			header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+			header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+			header("Cache-Control: no-store, no-cache, must-revalidate");
+			header("Cache-Control: post-check=0, pre-check=0", false);
+			header("Pragma: no-cache");
 			wp_logout();
 			wp_redirect(current_url('nologout'));
 			exit();
@@ -138,6 +142,12 @@ function widget_sidebarlogin_check() {
 				$myerrors = $errors;
 						
 			} else {
+				nocache_headers();
+				header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+				header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+				header("Cache-Control: no-store, no-cache, must-revalidate");
+				header("Cache-Control: post-check=0, pre-check=0", false);
+				header("Pragma: no-cache");
 				wp_redirect(current_url('nologout'));
 				exit;
 			}
@@ -148,7 +158,7 @@ if ( !function_exists('current_url') ) :
 function current_url($url = '') {
 	$pageURL = 'http';
 	if ($_SERVER["HTTPS"] == "on") $pageURL .= "s";
-	$pageURL .= "://";
+	$pageURL .= "://www.";
 	if ($_SERVER["SERVER_PORT"] != "80") {
 		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
 	} else {
@@ -160,6 +170,8 @@ function current_url($url = '') {
 		} else {
 			$pageURL .='?logout=true';
 		}
+	} elseif ($url != "nologout") {
+		$pageURL .='#login';
 	}
 	if ($url == "nologout" && strstr($pageURL,'logout')==true) {
 		$pageURL = str_replace('?logout=true','',$pageURL);
