@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.1.3
+Version: 2.1.4
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -158,7 +158,7 @@ if ( !function_exists('current_url') ) :
 function current_url($url = '') {
 	$pageURL = 'http';
 	if ($_SERVER["HTTPS"] == "on") $pageURL .= "s";
-	$pageURL .= "://www.";
+	$pageURL .= "://";
 	if ($_SERVER["SERVER_PORT"] != "80") {
 		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
 	} else {
