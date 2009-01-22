@@ -3,8 +3,8 @@ Contributors: jolley_small
 Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
-Tested up to: 2.6
-Stable tag: 2.1.4
+Tested up to: 2.7
+Stable tag: 2.1.5
 
 Adds a sidebar widget to let users login.
 
@@ -22,6 +22,10 @@ It lets users login, and then redirects them back to the page they logged in fro
    2. Activate the plugin
    3. For a sidebar widget: Goto the design > widgets tab - Drag the widget into a sidebar and save!
    4. To use the template tag: Add &lt;?php sidebarlogin(); ?&gt; to your template.
+   
+= Configuration =
+
+You will find a config page in tools/settings > Sidebar Login. Here you can set links and redirects up.
 
 == Screenshots ==
 

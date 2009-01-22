@@ -3,31 +3,127 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.1.4
+Version: 2.1.5
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
+
+load_plugin_textdomain('sblogin','wp-content/plugins/sidebar-login/');
+
+function wp_sidebarlogin_menu() {
+	add_management_page(__('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 6,'Sidebar Login', 'wp_sidebarlogin_admin');
+}
+add_action('admin_menu', 'wp_sidebarlogin_menu');
+
+function wp_sidebarlogin_magic() { 
+	function stripit($in) {
+		if (!is_array($in)) $out = stripslashes($in); else $out = $in;
+		return $out;
+	}
+	if (get_magic_quotes_gpc()){ 
+	 $_GET = array_map('stripit', $_GET); 
+	 $_POST = array_map('stripit', $_POST); 
+	}
+	return;
+}
+
+if (!function_exists(is_ssl)) :
+function is_ssl() {
+return ( isset($_SERVER['HTTPS']) && 'on' == strtolower($_SERVER['HTTPS']) ) ? true : false;
+}
+endif;
+
+function wp_sidebarlogin_admin(){
+	// Update options
+	if ($_POST) {
+		wp_sidebarlogin_magic();
+		update_option('sidebarlogin_login_redirect', $_POST['sidebarlogin_login_redirect']);
+		update_option('sidebarlogin_logout_redirect', $_POST['sidebarlogin_logout_redirect']);
+		update_option('sidebarlogin_register_link', $_POST['sidebarlogin_register_link']);
+		update_option('sidebarlogin_forgotton_link', $_POST['sidebarlogin_forgotton_link']);
+		update_option('sidebarlogin_logged_in_links', $_POST['sidebarlogin_logged_in_links']);
+		echo '<div id="message"class="updated fade">';	
+		_e('<p>Changes saved</p>',"sblogin");			
+		echo '</div>';
+	}
+	// Get options
+	$sidebarlogin_login_redirect = get_option('sidebarlogin_login_redirect');
+	$sidebarlogin_logout_redirect = get_option('sidebarlogin_logout_redirect');
+	$sidebarlogin_register_link = get_option('sidebarlogin_register_link');
+	$sidebarlogin_forgotton_link = get_option('sidebarlogin_forgotton_link');
+	$sidebarlogin_logged_in_links = get_option('sidebarlogin_logged_in_links');
+	?>
+	<div class="wrap alternate">
+        <h2><?php _e('Sidebar Login',"sblogin"); ?></h2>
+        <br class="a_break" style="clear: both;"/>
+        <form action="?page=Sidebar Login" method="post">
+            <table class="niceblue form-table">
+                <tr>
+                    <th scope="col"><?php _e('Login redirect URL',"wp-download_monitor"); ?>:</th>
+                    <td><input type="text" name="sidebarlogin_login_redirect" value="<?php echo $sidebarlogin_login_redirect; ?>" /> <span class="setting-description">Url to redirect the user to after login. Leave blank to use their current page.</span></td>
+                </tr>
+                <tr>
+                    <th scope="col"><?php _e('Logout redirect URL',"wp-download_monitor"); ?>:</th>
+                    <td><input type="text" name="sidebarlogin_logout_redirect" value="<?php echo $sidebarlogin_logout_redirect; ?>" /> <span class="setting-description">Url to redirect the user to after logout. Leave blank to use their current page.</span></td>
+                </tr>
+                <tr>
+                    <th scope="col"><?php _e('Show Register Link',"wp-download_monitor"); ?>:</th>
+                    <td><select name="sidebarlogin_register_link">
+                    	<option <?php if ($sidebarlogin_register_link=='yes') echo 'selected="selected"'; ?> value="yes">Yes</option>
+                    	<option <?php if ($sidebarlogin_register_link=='no') echo 'selected="selected"'; ?> value="no">No</option>
+                    </select> <span class="setting-description">User registrations must also be turned on for this to work ('Anyone can register' checkbox in settings).</span></td>
+                </tr>
+                <tr>
+                    <th scope="col"><?php _e('Show Lost Password Link',"wp-download_monitor"); ?>:</th>
+                    <td><select name="sidebarlogin_forgotton_link">
+                    	<option <?php if ($sidebarlogin_forgotton_link=='yes') echo 'selected="selected"'; ?> value="yes">Yes</option>
+                    	<option <?php if ($sidebarlogin_forgotton_link=='no') echo 'selected="selected"'; ?> value="no">No</option>
+                    </select></td>
+                </tr>
+                <tr>
+                    <th scope="col"><?php _e('Logged in links',"wp-download_monitor"); ?>:</th>
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description">One link per line (e.g. <code>&lt;a href="http://Yoursite.com/wp-admin/"&gt;Dashboard&lt;/a&gt;</code>). Logout link will always show regardless.</span></td>
+                </tr>
+            </table>
+            <p class="submit"><input type="submit" value="<?php _e('Save Changes',"wp-download_monitor"); ?>" /></p>
+        </form>
+    </div>
+    <?php
+}
+
 function sidebarlogin() {
+// Add options - they may not exist
+	add_option('sidebarlogin_login_redirect','','no');
+	add_option('sidebarlogin_logout_redirect','','no');
+	add_option('sidebarlogin_register_link','yes','no');
+	add_option('sidebarlogin_forgotton_link','yes','no');
+	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile')."</a>",'no');
 	$args["before_widget"]="";
 	$args["after_widget"]="";
 	$args["before_title"]="<h2>";
 	$args["after_title"]="</h2>";
-	widget_sidebarlogin($args);
+	widget_wp_sidebarlogin($args);
 }
-function widget_sidebarlogin($args) {
+function widget_wp_sidebarlogin($args) {
 	
 		extract($args);
 		
-		global $user_ID;
+		global $current_user;
+		get_currentuserinfo();
 
-		if (isset($user_ID)) {
+
+		if ($current_user->user_level > 0) {
 			// User is logged in
-			$user_info = get_userdata($user_ID);
-			echo $before_widget . $before_title . __("Welcome "). $user_info->display_name . $after_title;
-			echo '<ul class="pagenav">
-					<li class="page_item"><a href="'.get_bloginfo('wpurl').'/wp-admin/">'.__('Dashboard').'</a></li>
-					<li class="page_item"><a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php">'.__('Profile').'</a></li>
-					<li class="page_item"><a href="'.current_url('logout').'">'.__('Logout').'</a></li>
+			echo $before_widget . $before_title . __("Welcome "). $current_user->display_name . $after_title;
+			echo '<ul class="pagenav">';
+			
+			$links = get_option('sidebarlogin_logged_in_links');
+			$links = explode("\n", $links);
+			if (sizeof($links)>0)
+			foreach ($links as $l) {
+				echo '<li class="page_item">'.$l.'</li>';
+			}
+			echo '<li class="page_item"><a href="'.current_url('logout').'">'.__('Logout').'</a></li>
 				</ul>';
 		} else {
 			// User is NOT logged in!!!
@@ -68,7 +164,7 @@ function widget_sidebarlogin($args) {
 			<?php 			
 			// Output other links
 			echo '<ul class="sidebarlogin_otherlinks">';		
-			if (get_option('users_can_register')) { 
+			if (get_option('users_can_register') && get_option('sidebarlogin_register_link')=='yes') { 
 				// MU FIX
 				global $wpmu_version;
 				if (empty($wpmu_version)) {
@@ -81,20 +177,21 @@ function widget_sidebarlogin($args) {
 					<?php 
 				}
 			}
-			?>
+			if (get_option('sidebarlogin_forgotton_link')=='yes') : ?>
 			<li><a href="<?php bloginfo('wpurl'); ?>/wp-login.php?action=lostpassword" title="<?php _e('Password Lost and Found') ?>"><?php _e('Lost your password?') ?></a></li>
+			<?php endif; ?>
 			</ul>
 			<?php	
 		}
 		// echo widget closing tag
 		echo $after_widget;
 }
-function widget_sidebarlogin_init() {
+function widget_wp_sidebarlogin_init() {
 	if ( !function_exists('register_sidebar_widget') ) return;
 	// Register widget for use
-	register_sidebar_widget(array('Sidebar Login', 'widgets'), 'widget_sidebarlogin');
+	register_sidebar_widget(array('Sidebar Login', 'widgets'), 'widget_wp_sidebarlogin');
 }
-function widget_sidebarlogin_check() {
+function widget_wp_sidebarlogin_check() {
 	if ($_POST['sidebarlogin_posted'] || $_GET['logout']) {
 		// Includes
 		global $myerrors;
@@ -112,8 +209,10 @@ function widget_sidebarlogin_check() {
 			header("Cache-Control: post-check=0, pre-check=0", false);
 			header("Pragma: no-cache");
 			wp_logout();
-			wp_redirect(current_url('nologout'));
-			exit();
+			$redir = get_option('sidebarlogin_logout_redirect');
+			if (!empty($redir)) wp_redirect($redir);
+				else wp_redirect(current_url('nologout'));
+			exit;
 		}
 		// Are we doing a sidebar login action?
 		if ($_POST['sidebarlogin_posted']) {
@@ -148,7 +247,9 @@ function widget_sidebarlogin_check() {
 				header("Cache-Control: no-store, no-cache, must-revalidate");
 				header("Cache-Control: post-check=0, pre-check=0", false);
 				header("Pragma: no-cache");
-				wp_redirect(current_url('nologout'));
+				$redir = get_option('sidebarlogin_login_redirect');
+				if (!empty($redir)) wp_redirect($redir);
+				else wp_redirect(current_url('nologout'));
 				exit;
 			}
 		}
@@ -158,7 +259,7 @@ if ( !function_exists('current_url') ) :
 function current_url($url = '') {
 	$pageURL = 'http';
 	if ($_SERVER["HTTPS"] == "on") $pageURL .= "s";
-	$pageURL .= "://";
+	$pageURL .= "://www.";
 	if ($_SERVER["SERVER_PORT"] != "80") {
 		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
 	} else {
@@ -166,16 +267,16 @@ function current_url($url = '') {
 	}
 	if ($url == "logout" && strstr($pageURL,'logout')==false) {
 		if (strstr($pageURL,'?')) {
-			$pageURL .='&logout=true';
+			$pageURL .='&logout=true&action=logout';
 		} else {
-			$pageURL .='?logout=true';
+			$pageURL .='?logout=true&action=logout';
 		}
 	} elseif ($url != "nologout") {
 		$pageURL .='#login';
 	}
 	if ($url == "nologout" && strstr($pageURL,'logout')==true) {
-		$pageURL = str_replace('?logout=true','',$pageURL);
-		$pageURL = str_replace('&logout=true','',$pageURL);
+		$pageURL = str_replace('?logout=true&action=logout','',$pageURL);
+		$pageURL = str_replace('&logout=true&action=logout','',$pageURL);
 	}
 	//————–added by mick 
 	if (!strstr(get_bloginfo('wpurl'),'www.')) $pageURL = str_replace('www.','', $pageURL );
@@ -184,6 +285,6 @@ function current_url($url = '') {
 }
 endif;
 // Run code and init
-add_action('init', 'widget_sidebarlogin_check',1);
-add_action('widgets_init', 'widget_sidebarlogin_init');
+add_action('init', 'widget_wp_sidebarlogin_check',0);
+add_action('widgets_init', 'widget_wp_sidebarlogin_init');
 ?>
