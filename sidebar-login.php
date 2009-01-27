@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.1.6
+Version: 2.1.7
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -101,11 +101,10 @@ function widget_wp_sidebarlogin($args) {
 	
 		extract($args);
 				
-		global $current_user;
+		global $user_ID, $current_user;
 		get_currentuserinfo();
 
-
-		if ($current_user->user_level > 0) {
+		if ($user_ID) {
 			// User is logged in
 			echo $before_widget . $before_title . __("Welcome",'sblogin').' '.$current_user->display_name . $after_title;
 			echo '<ul class="pagenav">';
