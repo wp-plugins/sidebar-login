@@ -104,7 +104,7 @@ function widget_wp_sidebarlogin($args) {
 		global $user_ID, $current_user;
 		get_currentuserinfo();
 
-		if ($user_ID) {
+		if ($user_ID != '') {
 			// User is logged in
 			echo $before_widget . $before_title . __("Welcome",'sblogin').' '.$current_user->display_name . $after_title;
 			echo '<ul class="pagenav">';
