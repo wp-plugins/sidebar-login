@@ -1,0 +1,16 @@
+// Basic styling for login widget
+// This styling aligns the gravtar left, the links right.
+.widget_wp_sidebarlogin {
+	overflow: hidden;
+}
+.widget_wp_sidebarlogin .avatar_container {
+	float:left;
+}
+.widget_wp_sidebarlogin .avatar_container img {
+	padding: 3px;
+	border: 1px solid #ddd;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	margin-right: 8px;
+	margin-top: 5px;
+}

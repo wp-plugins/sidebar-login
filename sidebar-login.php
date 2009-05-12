@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2
+Version: 2.2.1
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -115,7 +115,8 @@ function widget_wp_sidebarlogin($args) {
 		global $user_ID, $current_user;
 		
 		/* To add more extend i.e when terms came from themes - suggested by dev.xiligroup.com */
-		$defaults = array('thelogin'=>__('Login','sblogin'),
+		$defaults = array(
+			'thelogin'=>__('Login','sblogin'),
 			'thewelcome'=>__("Welcome",'sblogin'),
 			'theusername'=>__('Username:','sblogin'),
 			'thepassword'=>__('Password:','sblogin'),
@@ -123,8 +124,7 @@ function widget_wp_sidebarlogin($args) {
 			'theregister'=>__('Register','sblogin'),
 			'thepasslostandfound'=>__('Password Lost and Found','sblogin'),
 			'thelostpass'=>	__('Lost your password?','sblogin'),
-			'thelogout'=> __('Logout','sblogin'),
-			'thelogin'=> __('Login','sblogin')
+			'thelogout'=> __('Logout','sblogin')
 		);
 		
 		$args = array_merge($defaults, $args);
@@ -134,13 +134,17 @@ function widget_wp_sidebarlogin($args) {
 
 		if ($user_ID != '') {
 			// User is logged in
-			echo $before_widget . $before_title .$thewelcome.' '.$current_user->display_name . $after_title;
+			echo $before_widget . $before_title .$thewelcome.' '.ucwords($current_user->display_name). $after_title;
+			
+			echo '<div class="avatar_container">'.get_avatar($user_ID, $size = '38').'</div>';
+			
 			echo '<ul class="pagenav">';
 			
 			$user_info = get_userdata($user_ID);
 			$level = $user_info->user_level;
 					
-			$links = get_option('sidebarlogin_logged_in_links');
+			$links = do_shortcode(get_option('sidebarlogin_logged_in_links'));
+			
 			$links = explode("\n", $links);
 			if (sizeof($links)>0)
 			foreach ($links as $l) {
@@ -236,49 +240,62 @@ function widget_wp_sidebarlogin_check() {
 	add_option('sidebarlogin_register_link','yes','no');
 	add_option('sidebarlogin_forgotton_link','yes','no');
 	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile')."</a>",'no');
+	
+	//Set a cookie now to see if they are supported by the browser.
+	setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN);
+	if ( SITECOOKIEPATH != COOKIEPATH )
+		setcookie(TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN);
 
 	if ($_POST['sidebarlogin_posted']) {
-		// Includes
+	
 		global $myerrors;
 		$myerrors = new WP_Error();
-		//Set a cookie now to see if they are supported by the browser.
-		setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN);
-		if ( SITECOOKIEPATH != COOKIEPATH )
-			setcookie(TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN);
-		// Are we doing a sidebar login action?
-		if ($_POST['sidebarlogin_posted']) {		
 		
-			if ( is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) )
-				$secure_cookie = false;
-			else
-				$secure_cookie = '';
+		nocache_headers();
 		
-			$user = wp_signon('', $secure_cookie);
-			
-			// Error Handling
-			if ( is_wp_error($user) ) {
-			
-				$errors = $user;
-	
-				// If cookies are disabled we can't log in even with a valid user+pass
-				if ( isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE]) )
-					$errors->add('test_cookie', __("<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href='http://www.google.com/cookies.html'>enable cookies</a> to use WordPress.", 'sblogin'));
-					
-				if ( empty($_POST['log']) && empty($_POST['pwd']) ) {
-					$errors->add('empty_username', __('<strong>ERROR</strong>: Please enter a username.', 'sblogin'));
-					$errors->add('empty_password', __('<strong>ERROR</strong>: Please enter your password.', 'sblogin'));
+		$secure_cookie = '';
+		
+		$redir = get_option('sidebarlogin_login_redirect');
+		if (!empty($redir)) $redirect_to = $redir;
+		else $redirect_to = wp_sidebarlogin_current_url('nologout');
+
+		// If the user wants ssl but the session is not ssl, force a secure cookie.
+		if ( !empty($_POST['log']) && !force_ssl_admin() ) {
+			$user_name = sanitize_user($_POST['log']);
+			if ( $user = get_userdatabylogin($user_name) ) {
+				if ( get_user_option('use_ssl', $user->ID) ) {
+					$secure_cookie = true;
+					force_ssl_admin(true);
 				}
-					
-				$myerrors = $errors;
-						
-			} else {
-				nocache_headers();
-				$redir = get_option('sidebarlogin_login_redirect');
-				if (!empty($redir)) wp_redirect($redir);
-				else wp_redirect(wp_sidebarlogin_current_url('nologout'));
-				exit;
 			}
 		}
+
+		if ( $redirect_to ) {
+			// Redirect to https if user wants ssl
+			if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') )
+				$redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+		}
+
+		if ( !$secure_cookie && is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) )
+			$secure_cookie = false;
+
+		$user = wp_signon('', $secure_cookie);
+
+		$redirect_to = apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user);
+
+		if ( !is_wp_error($user) ) {
+			if ( isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE]) )
+				$myerrors->add('test_cookie', __("<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href='http://www.google.com/cookies.html'>enable cookies</a> to use WordPress."));
+			else {
+				wp_safe_redirect($redirect_to);
+				exit();
+			}
+		} else {
+			$myerrors = $user;
+			if ( empty($_POST['log']) && empty($_POST['pwd']) ) {
+				$myerrors->add('empty_username', __('<strong>ERROR</strong>: Please enter a username & password.', 'sblogin'));
+			}
+		}		
 	}
 }
 
@@ -302,7 +319,14 @@ function wp_sidebarlogin_current_url($url = '') {
 }
 endif;
 
+function wp_sidebarlogin_css() {
+    $myStyleFile = WP_PLUGIN_URL . '/sidebar-login/style.css';
+    wp_register_style('wp_sidebarlogin_css_styles', $myStyleFile);
+    wp_enqueue_style( 'wp_sidebarlogin_css_styles');
+}
+
 // Run code and init
+add_action('wp_print_styles', 'wp_sidebarlogin_css');
 add_action('init', 'widget_wp_sidebarlogin_check',0);
 add_action('widgets_init', 'widget_wp_sidebarlogin_init');
 add_action('admin_menu', 'wp_sidebarlogin_menu');
