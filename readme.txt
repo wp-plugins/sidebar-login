@@ -4,7 +4,7 @@ Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
 Tested up to: 2.7
-Stable tag: 2.2.1
+Stable tag: 2.2.2
 
 Adds a sidebar widget to let users login.
 
@@ -13,6 +13,10 @@ Adds a sidebar widget to let users login.
 Sidebar-Login has both a widget and a template tag to allow you to have a login form in the sidebar of your wordpress powered blog.
 
 It lets users login, and then redirects them back to the page they logged in from rather than the backend, it also shows error messages.
+
+= Localization Files =
+
+Czech Translation - http://wordpress.blog.mantlik.cz/plugins/sblogin-cs/
 
 == Installation ==
 

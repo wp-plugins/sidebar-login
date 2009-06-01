@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.1
+Version: 2.2.2
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -11,7 +11,7 @@ Author URI: http://blue-anvil.com
 load_plugin_textdomain('sblogin','wp-content/plugins/sidebar-login/');
 
 function wp_sidebarlogin_menu() {
-	add_management_page(__('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 6,'Sidebar Login', 'wp_sidebarlogin_admin');
+	add_management_page(__('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 9,'Sidebar Login', 'wp_sidebarlogin_admin');
 }
 
 if (!function_exists('wp_sidebarlogin_magic')) {
@@ -27,7 +27,7 @@ function wp_sidebarlogin_magic() {
 }
 }
 
-if (!function_exists(is_ssl)) :
+if (!function_exists('is_ssl')) :
 function is_ssl() {
 return ( isset($_SERVER['HTTPS']) && 'on' == strtolower($_SERVER['HTTPS']) ) ? true : false;
 }
@@ -82,7 +82,7 @@ function wp_sidebarlogin_admin(){
                 </tr>
                 <tr>
                     <th scope="col"><?php _e('Logged in links',"sblogin"); ?>:</th>
-                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. Default: <br/>&lt;a href="http://localhost:8888/wordpress27/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="http://localhost:8888/wordpress27/wp-admin/profile.php"&gt;Profile&lt;/a&gt;','sblogin'); ?></span></td>
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. Default: <br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;','sblogin'); ?></span></td>
                 </tr>
             </table>
             <p class="submit"><input type="submit" value="<?php _e('Save Changes',"sblogin"); ?>" /></p>
@@ -149,14 +149,14 @@ function widget_wp_sidebarlogin($args) {
 			if (sizeof($links)>0)
 			foreach ($links as $l) {
 				$link = explode('|',$l);
-				if (strtolower(trim($link[1]))=='true' && $level!=10) continue; 
+				if (isset($link[1]) && strtolower(trim($link[1]))=='true' && $level!=10) continue; 
 				echo '<li class="page_item">'.$link[0].'</li>';
 			}
 			
 			$redir = get_option('sidebarlogin_logout_redirect');
 			if (empty($redir)) $redir = wp_sidebarlogin_current_url('nologout');
 			
-			echo '<li class="page_item"><a href="'.wp_logout_url($redirect).'&redirect_to='.$redir.'">'.$thelogout.'</a></li></ul>';
+			echo '<li class="page_item"><a href="'.wp_logout_url($redir).'">'.$thelogout.'</a></li></ul>';
 			
 		} else {
 			// User is NOT logged in!!!
@@ -202,20 +202,23 @@ function widget_wp_sidebarlogin($args) {
 				global $wpmu_version;
 				if (empty($wpmu_version)) {
 					echo '<ul class="sidebarlogin_otherlinks">';
-					$isul= true;
+					$isul = true;
 					?>
 						<li><a href="<?php bloginfo('wpurl'); ?>/wp-login.php?action=register" rel="nofollow"><?php echo $theregister; ?></a></li>
 					<?php 
 				} else {
 					echo '<ul class="sidebarlogin_otherlinks">';
-					$isul= true;
+					$isul = true;
 					?>
 						<li><a href="<?php bloginfo('wpurl'); ?>/wp-signup.php" rel="nofollow"><?php echo $theregister; ?></a></li>
 					<?php 
 				}
 			}
 			if (get_option('sidebarlogin_forgotton_link')=='yes') : 
-				if ($isul== false) echo '<ul class="sidebarlogin_otherlinks">'; 
+				if ($isul == false) {
+					echo '<ul class="sidebarlogin_otherlinks">';
+					$isul = true;
+				}
 				?>
 				<li><a href="<?php bloginfo('wpurl'); ?>/wp-login.php?action=lostpassword" title="<?php echo $thepasslostfound; ?>" rel="nofollow"><?php echo $thelostpass; ?></a></li>
 				<?php 
@@ -246,7 +249,7 @@ function widget_wp_sidebarlogin_check() {
 	if ( SITECOOKIEPATH != COOKIEPATH )
 		setcookie(TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN);
 
-	if ($_POST['sidebarlogin_posted']) {
+	if (isset($_POST['sidebarlogin_posted'])) {
 	
 		global $myerrors;
 		$myerrors = new WP_Error();
@@ -301,20 +304,82 @@ function widget_wp_sidebarlogin_check() {
 
 if ( !function_exists('wp_sidebarlogin_current_url') ) :
 function wp_sidebarlogin_current_url($url = '') {
-	$pageURL = ($_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';
 
-	if ($_SERVER["SERVER_PORT"] != "80") {
-		$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
-	} else {
-		$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+	global $wpdb;
+	$pageURL = "";
+	if (is_home() || is_front_page()) 
+	{
+		$pageURL = get_bloginfo('wpurl');
 	}
+	elseif (is_single() || is_page())
+	{
+		global $post;
+		$pageURL = get_permalink($post->ID);
+	}
+	elseif (is_category()) 
+	{
+		global $cat;
+		$pageURL = get_category_link($cat);
+	}
+	elseif (is_tag()) 
+	{
+		global $tag;
+		$tag_id = $wpdb->get_var("SELECT ".$wpdb->terms.".term_id FROM $wpdb->term_taxonomy
+			LEFT JOIN $wpdb->terms
+			ON (".$wpdb->term_taxonomy.".term_id = ".$wpdb->terms.".term_id)
+			WHERE ".$wpdb->terms.".slug = '$tag'
+			AND ".$wpdb->term_taxonomy.".taxonomy = 'post_tag' LIMIT 1");
+		$pageURL = get_tag_link($tag_id);
+	}
+	elseif (is_author()) 
+	{
+		global $author;
+		$pageURL = get_author_posts_url($author);
+	}
+	elseif (is_date())
+	{
+	
+		global $year, $monthnum, $day;
+
+		if ($day) 
+		{
+			$pageURL = get_day_link( $year,  $month,  $day);
+		}
+		elseif ($monthnum) 
+		{
+			$pageURL = get_month_link( $year,  $monthnum,  $day);
+		}
+		elseif ($year) 
+		{
+			$pageURL = get_year_link( $year,  $monthnum,  $day);
+		}
+
+	}
+	elseif (is_search()) 
+	{
+		$pageURL = get_bloginfo('wpurl');
+		if ("/" != substr($pageURL, -1)) $pageURL = $pageURL . "/";
+		$pageURL .= '?s='.$_REQUEST['s'].'';
+	}
+	else {
+		$pageURL = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';
+	
+		if ($_SERVER["SERVER_PORT"] != "80") {
+			$pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+		} else {
+			$pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+		}		
+		
+		//————–added by mick 
+		if (!strstr(get_bloginfo('url'),'www.')) $pageURL = str_replace('www.','', $pageURL );
+		//——————–	
+	}
+	if ($pageURL && !is_search()) if ("/" != substr($pageURL, -1)) $pageURL = $pageURL . "/";
 	
 	if ($url != "nologout") {
 		$pageURL .='#login';
 	}
-	//————–added by mick 
-	if (!strstr(get_bloginfo('url'),'www.')) $pageURL = str_replace('www.','', $pageURL );
-	//——————–	
+		
 	return $pageURL;
 }
 endif;
