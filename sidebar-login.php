@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.2
+Version: 2.2.3
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -82,7 +82,8 @@ function wp_sidebarlogin_admin(){
                 </tr>
                 <tr>
                     <th scope="col"><?php _e('Logged in links',"sblogin"); ?>:</th>
-                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. Default: <br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;','sblogin'); ?></span></td>
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. Default: <br/>&lt;a href="','sblogin');
+                    echo get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;'; ?></span></td>
                 </tr>
             </table>
             <p class="submit"><input type="submit" value="<?php _e('Save Changes',"sblogin"); ?>" /></p>
@@ -164,7 +165,7 @@ function widget_wp_sidebarlogin($args) {
 			// Show any errors
 			global $myerrors;
 			$wp_error = new WP_Error();
-			if ( !empty($myerrors) ) {
+			if ( !empty($myerrors) && is_wp_error($myerrors) ) {
 				$wp_error = $myerrors;
 			}
 			if ( $wp_error->get_error_code() ) {
@@ -305,7 +306,7 @@ function widget_wp_sidebarlogin_check() {
 if ( !function_exists('wp_sidebarlogin_current_url') ) :
 function wp_sidebarlogin_current_url($url = '') {
 
-	global $wpdb;
+	global $wpdb, $post, $cat, $tag, $author, $year, $monthnum, $day;
 	$pageURL = "";
 	if (is_home() || is_front_page()) 
 	{
@@ -313,17 +314,14 @@ function wp_sidebarlogin_current_url($url = '') {
 	}
 	elseif (is_single() || is_page())
 	{
-		global $post;
 		$pageURL = get_permalink($post->ID);
 	}
 	elseif (is_category()) 
 	{
-		global $cat;
 		$pageURL = get_category_link($cat);
 	}
 	elseif (is_tag()) 
 	{
-		global $tag;
 		$tag_id = $wpdb->get_var("SELECT ".$wpdb->terms.".term_id FROM $wpdb->term_taxonomy
 			LEFT JOIN $wpdb->terms
 			ON (".$wpdb->term_taxonomy.".term_id = ".$wpdb->terms.".term_id)
@@ -333,13 +331,10 @@ function wp_sidebarlogin_current_url($url = '') {
 	}
 	elseif (is_author()) 
 	{
-		global $author;
 		$pageURL = get_author_posts_url($author);
 	}
 	elseif (is_date())
 	{
-	
-		global $year, $monthnum, $day;
 
 		if ($day) 
 		{
@@ -361,7 +356,9 @@ function wp_sidebarlogin_current_url($url = '') {
 		if ("/" != substr($pageURL, -1)) $pageURL = $pageURL . "/";
 		$pageURL .= '?s='.$_REQUEST['s'].'';
 	}
-	else {
+	
+	if (!$pageURL || $pageURL=="" || !is_string($pageURL)) {
+		$pageURL = "";
 		$pageURL = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https://' : 'http://';
 	
 		if ($_SERVER["SERVER_PORT"] != "80") {
