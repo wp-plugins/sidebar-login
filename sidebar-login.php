@@ -8,7 +8,16 @@ Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
 
-load_plugin_textdomain('sblogin','wp-content/plugins/sidebar-login/');
+// Pre 2.6 compatibility (BY Stephen Rider)
+if ( ! defined( 'WP_CONTENT_URL' ) ) {
+	if ( defined( 'WP_SITEURL' ) ) define( 'WP_CONTENT_URL', WP_SITEURL . '/wp-content' );
+	else define( 'WP_CONTENT_URL', get_option( 'url' ) . '/wp-content' );
+}
+if ( ! defined( 'WP_CONTENT_DIR' ) ) define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+if ( ! defined( 'WP_PLUGIN_URL' ) ) define( 'WP_PLUGIN_URL', WP_CONTENT_URL. '/plugins' );
+if ( ! defined( 'WP_PLUGIN_DIR' ) ) define( 'WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins' );
+
+load_plugin_textdomain('sblogin', WP_PLUGIN_URL.'/sidebar-login/', 'sidebar-login/');
 
 function wp_sidebarlogin_menu() {
 	add_management_page(__('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 9,'Sidebar Login', 'wp_sidebarlogin_admin');
@@ -154,8 +163,8 @@ function widget_wp_sidebarlogin($args) {
 				echo '<li class="page_item">'.$link[0].'</li>';
 			}
 			
-			$redir = get_option('sidebarlogin_logout_redirect');
-			if (empty($redir)) $redir = wp_sidebarlogin_current_url('nologout');
+			$redir = trim(stripslashes(get_option('sidebarlogin_logout_redirect')));
+			if (!$redir || empty($redir)) $redir = wp_sidebarlogin_current_url('nologout');
 			
 			echo '<li class="page_item"><a href="'.wp_logout_url($redir).'">'.$thelogout.'</a></li></ul>';
 			
@@ -259,8 +268,8 @@ function widget_wp_sidebarlogin_check() {
 		
 		$secure_cookie = '';
 		
-		$redir = get_option('sidebarlogin_login_redirect');
-		if (!empty($redir)) $redirect_to = $redir;
+		$redir = trim(stripslashes(get_option('sidebarlogin_login_redirect')));
+		if ($redir && !empty($redir)) $redirect_to = $redir;
 		else $redirect_to = wp_sidebarlogin_current_url('nologout');
 
 		// If the user wants ssl but the session is not ssl, force a secure cookie.
@@ -287,14 +296,14 @@ function widget_wp_sidebarlogin_check() {
 
 		$redirect_to = apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user);
 
-		if ( !is_wp_error($user) ) {
+		if ( $user && !is_wp_error($user) ) {
 			if ( isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE]) )
 				$myerrors->add('test_cookie', __("<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href='http://www.google.com/cookies.html'>enable cookies</a> to use WordPress."));
 			else {
 				wp_safe_redirect($redirect_to);
 				exit();
 			}
-		} else {
+		} elseif ($user) {
 			$myerrors = $user;
 			if ( empty($_POST['log']) && empty($_POST['pwd']) ) {
 				$myerrors->add('empty_username', __('<strong>ERROR</strong>: Please enter a username & password.', 'sblogin'));
@@ -310,7 +319,7 @@ function wp_sidebarlogin_current_url($url = '') {
 	$pageURL = "";
 	if (is_home() || is_front_page()) 
 	{
-		$pageURL = get_bloginfo('wpurl');
+		$pageURL = get_bloginfo('url');
 	}
 	elseif (is_single() || is_page())
 	{
