@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.3
+Version: 2.2.4
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -17,7 +17,7 @@ if ( ! defined( 'WP_CONTENT_DIR' ) ) define( 'WP_CONTENT_DIR', ABSPATH . 'wp-con
 if ( ! defined( 'WP_PLUGIN_URL' ) ) define( 'WP_PLUGIN_URL', WP_CONTENT_URL. '/plugins' );
 if ( ! defined( 'WP_PLUGIN_DIR' ) ) define( 'WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins' );
 
-load_plugin_textdomain('sblogin', WP_PLUGIN_URL.'/sidebar-login/', 'sidebar-login/');
+load_plugin_textdomain('sblogin', WP_PLUGIN_URL.'/sidebar-login/langs/', 'sidebar-login/langs/');
 
 function wp_sidebarlogin_menu() {
 	add_management_page(__('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 9,'Sidebar Login', 'wp_sidebarlogin_admin');
