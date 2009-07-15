@@ -4,7 +4,7 @@ Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: 2.2.4
+Stable tag: 2.2.5
 
 Adds a sidebar widget to let users login.
 
@@ -17,9 +17,15 @@ It lets users login, and then redirects them back to the page they logged in fro
 = Localization Files =
 
 Czech Translation - http://wordpress.blog.mantlik.cz/plugins/sblogin-cs/
-Catalan Translation (included) by Marc Vinyals
-French Translation (included) by Andy
-Estonian Translation - http://omegadisain.net/Uploaded/sidebar-login-estonian.zip
+Catalan Translation by Marc Vinyals
+French Translation by Andy
+Estonian Translation by Marko Punnar
+Dutch Translation by Ruben Janssen
+German Translation by GhostLyrics
+Italian Translation by Alessandro Spadavecchia
+Hungarian translation by Laszlo Dvornik
+Russian translation by Fat Cow (http://www.fatcow.com)
+Romanian translation by Victor Osorhan
 
 == Installation ==
 

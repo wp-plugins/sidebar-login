@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.4
+Version: 2.2.5
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -150,8 +150,10 @@ function widget_wp_sidebarlogin($args) {
 			
 			echo '<ul class="pagenav">';
 			
-			$user_info = get_userdata($user_ID);
-			$level = $user_info->user_level;
+			global $current_user;
+      		get_currentuserinfo();
+
+			if ($current_user->user_level) $level = $current_user->user_level;
 					
 			$links = do_shortcode(get_option('sidebarlogin_logged_in_links'));
 			
@@ -252,7 +254,7 @@ function widget_wp_sidebarlogin_check() {
 	add_option('sidebarlogin_logout_redirect','','no');
 	add_option('sidebarlogin_register_link','yes','no');
 	add_option('sidebarlogin_forgotton_link','yes','no');
-	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile')."</a>",'no');
+	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard','sblogin')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile','sblogin')."</a>",'no');
 	
 	//Set a cookie now to see if they are supported by the browser.
 	setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN);
@@ -315,9 +317,14 @@ function widget_wp_sidebarlogin_check() {
 if ( !function_exists('wp_sidebarlogin_current_url') ) :
 function wp_sidebarlogin_current_url($url = '') {
 
-	global $wpdb, $post, $cat, $tag, $author, $year, $monthnum, $day;
+	global $wpdb, $post, $cat, $tag, $author, $year, $monthnum, $day, $wp_query;
 	$pageURL = "";
-	if (is_home() || is_front_page()) 
+
+	if ( is_home() && $wp_query->is_posts_page==1)
+	{
+		$pageURL = get_permalink(get_option('page_for_posts'));
+	}
+	elseif (is_home() || is_front_page()) 
 	{
 		$pageURL = get_bloginfo('url');
 	}
@@ -381,9 +388,13 @@ function wp_sidebarlogin_current_url($url = '') {
 		//——————–	
 	}
 	if ($pageURL && !is_search()) if ("/" != substr($pageURL, -1)) $pageURL = $pageURL . "/";
-	
+
 	if ($url != "nologout") {
 		$pageURL .='#login';
+	}
+	
+	if ( force_ssl_login() || force_ssl_admin() ) {
+	    $pageURL = str_replace( 'http://', 'https://', get_option('siteurl') );
 	}
 		
 	return $pageURL;
