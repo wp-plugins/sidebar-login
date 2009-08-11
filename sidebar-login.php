@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.5
+Version: 2.2.6
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -91,7 +91,7 @@ function wp_sidebarlogin_admin(){
                 </tr>
                 <tr>
                     <th scope="col"><?php _e('Logged in links',"sblogin"); ?>:</th>
-                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. Default: <br/>&lt;a href="','sblogin');
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. You can also type <code>%USERNAME%</code> which will be replaced by the user\'s username. Default: <br/>&lt;a href="','sblogin');
                     echo get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;'; ?></span></td>
                 </tr>
             </table>
@@ -144,14 +144,15 @@ function widget_wp_sidebarlogin($args) {
 
 		if ($user_ID != '') {
 			// User is logged in
+			
+			global $current_user;
+      		get_currentuserinfo();
+			
 			echo $before_widget . $before_title .$thewelcome.' '.ucwords($current_user->display_name). $after_title;
 			
 			echo '<div class="avatar_container">'.get_avatar($user_ID, $size = '38').'</div>';
 			
 			echo '<ul class="pagenav">';
-			
-			global $current_user;
-      		get_currentuserinfo();
 
 			if ($current_user->user_level) $level = $current_user->user_level;
 					
@@ -162,7 +163,12 @@ function widget_wp_sidebarlogin($args) {
 			foreach ($links as $l) {
 				$link = explode('|',$l);
 				if (isset($link[1]) && strtolower(trim($link[1]))=='true' && $level!=10) continue; 
-				echo '<li class="page_item">'.$link[0].'</li>';
+				else {
+					// Parse %USERNAME%
+					$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
+					$link[0] = str_replace('%username%',$current_user->user_login,$link[0]);
+					echo '<li class="page_item">'.$link[0].'</li>';
+				}
 			}
 			
 			$redir = trim(stripslashes(get_option('sidebarlogin_logout_redirect')));
@@ -172,7 +178,7 @@ function widget_wp_sidebarlogin($args) {
 			
 		} else {
 			// User is NOT logged in!!!
-			echo $before_widget . $before_title . $thelogin . $after_title;
+			echo $before_widget . $before_title .'<span>'. $thelogin .'</span>' . $after_title;
 			// Show any errors
 			global $myerrors;
 			$wp_error = new WP_Error();
@@ -196,15 +202,41 @@ function widget_wp_sidebarlogin($args) {
 				if ( !empty($messages) )
 					echo '<p class="message">' . apply_filters('login_messages', $messages) . "</p>\n";
 			}
-			// login form
-			echo '<form action="'.wp_sidebarlogin_current_url().'" method="post">';
+			// login form		
+			echo '<form method="post" action="'.wp_sidebarlogin_current_url().'">';
 			?>
 			<p><label for="user_login"><?php echo $theusername; ?><br/><input name="log" value="<?php echo attribute_escape(stripslashes($_POST['log'])); ?>" class="mid" id="user_login" type="text" /></label></p>
-			<p><label for="user_pass"><?php echo $thepassword; ?><br/><input name="pwd" class="mid" id="user_pass" type="password" /></label></p>
-			<p><label for="rememberme"><input name="rememberme" class="checkbox" id="rememberme" value="forever" type="checkbox" /> <?php echo $theremember; ?></label></p>
+			<p><label for="user_pass"><?php echo $thepassword; ?><br/><input name="pwd" class="mid" id="user_pass" type="password" /></label></p>			
+
+			<?php
+			// OpenID Plugin (http://wordpress.org/extend/plugins/openid/) Integration
+			if (function_exists('openid_wp_login_form')) {
+			
+				echo '<input type="hidden" name="redirect_to" value="'.wp_sidebarlogin_current_url().'" />';
+				
+				//openid_wp_login_form();
+				echo '<hr id="openid_split" />';
+			
+				echo '
+				<p>
+					<label for="openid_field">' . __('Or login using an <a href="http://openid.net/what/" title="Learn about OpenID">OpenID</a>', 'sblogin') . '</label>
+					<input type="text" name="openid_identifier" id="openid_field" class="input mid" value="" /></label>
+				</p>';		
+			}			
+			
+			?>
+			
+			<p class="rememberme"><label for="rememberme"><input name="rememberme" class="checkbox" id="rememberme" value="forever" type="checkbox" /> <?php echo $theremember; ?></label></p>
 			<p class="submit"><input type="submit" name="wp-submit" id="wp-submit" value="<?php echo $thelogin; ?> &raquo;" />
+			
 			<input type="hidden" name="sidebarlogin_posted" value="1" />
 			<input type="hidden" name="testcookie" value="1" /></p>
+			
+			<?php
+			// Facebook Plugin
+			if (function_exists('fbc_init_auth')) do_action('fbc_display_login_button');
+			?>
+			
 			</form>
 			<?php 			
 			// Output other links
@@ -236,7 +268,8 @@ function widget_wp_sidebarlogin($args) {
 				<?php 
 			endif; 
 			if ($isul) echo '</ul>';	
-		}
+		}		
+			
 		// echo widget closing tag
 		echo $after_widget;
 }
@@ -390,7 +423,18 @@ function wp_sidebarlogin_current_url($url = '') {
 	if ($pageURL && !is_search()) if ("/" != substr($pageURL, -1)) $pageURL = $pageURL . "/";
 
 	if ($url != "nologout") {
-		$pageURL .='#login';
+		if (!strpos($pageURL,'_login=')) {
+			$rand_string = md5(uniqid(rand(), true));
+			$rand_string = substr($rand_string, 0, 10);
+			
+			if (strpos($pageURL,'?')) 
+				if (substr($pageURL,-1)=='/') 
+					$pageURL = substr($pageURL,0,-1);
+			
+			$rand = (!strpos($pageURL,'?')) ? '?_login='.$rand_string : '&_login='.$rand_string;
+			$pageURL .= $rand;
+		}	
+		//$pageURL .='#login';
 	}
 	
 	if ( force_ssl_login() || force_ssl_admin() ) {
