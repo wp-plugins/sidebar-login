@@ -4,7 +4,7 @@ Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
 Tested up to: 2.8
-Stable tag: 2.2.6
+Stable tag: 2.2.7
 
 Adds a sidebar widget to let users login.
 
@@ -37,6 +37,7 @@ Polish translation by merito
 Polish (2) translation by Darek Wapinski
 Icelandic translation by Hákon Ásgeirsson
 Arabic translation by khalid
+Persian(farsi) translation Amir Beitollahi
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 

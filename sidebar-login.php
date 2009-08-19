@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.6
+Version: 2.2.7
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -138,7 +138,7 @@ function widget_wp_sidebarlogin($args) {
 		);
 		
 		$args = array_merge($defaults, $args);
-		extract($args);				
+		extract($args);		
 		
 		get_currentuserinfo();
 
@@ -153,8 +153,8 @@ function widget_wp_sidebarlogin($args) {
 			echo '<div class="avatar_container">'.get_avatar($user_ID, $size = '38').'</div>';
 			
 			echo '<ul class="pagenav">';
-
-			if ($current_user->user_level) $level = $current_user->user_level;
+			
+			if(isset($current_user->user_level) && $current_user->user_level) $level = $current_user->user_level;
 					
 			$links = do_shortcode(get_option('sidebarlogin_logged_in_links'));
 			
@@ -181,13 +181,21 @@ function widget_wp_sidebarlogin($args) {
 			echo $before_widget . $before_title .'<span>'. $thelogin .'</span>' . $after_title;
 			// Show any errors
 			global $myerrors;
+
 			$wp_error = new WP_Error();
+								
 			if ( !empty($myerrors) && is_wp_error($myerrors) ) {
 				$wp_error = $myerrors;
 			}
+			
+			/* Cookies not supported error handling */
+			if ( isset($_GET['_login']) && empty($_COOKIE[TEST_COOKIE]) ) $wp_error->add('test_cookie', __("<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href='http://www.google.com/cookies.html'>enable cookies</a> to use WordPress."));
+			
 			if ( $wp_error->get_error_code() ) {
+			
 				$errors = '';
 				$messages = '';
+				
 				foreach ( $wp_error->get_error_codes() as $code ) {
 					$severity = $wp_error->get_error_data($code);
 					foreach ( $wp_error->get_error_messages($code) as $error ) {
@@ -196,7 +204,8 @@ function widget_wp_sidebarlogin($args) {
 						else
 							$errors .= '	' . $error . "<br />\n";
 					}
-				}
+				}				
+				
 				if ( !empty($errors) )
 					echo '<div id="login_error">' . apply_filters('login_errors', $errors) . "</div>\n";
 				if ( !empty($messages) )
@@ -288,8 +297,8 @@ function widget_wp_sidebarlogin_check() {
 	add_option('sidebarlogin_register_link','yes','no');
 	add_option('sidebarlogin_forgotton_link','yes','no');
 	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard','sblogin')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile','sblogin')."</a>",'no');
-	
-	//Set a cookie now to see if they are supported by the browser.
+
+	// Set a cookie now to see if they are supported by the browser.
 	setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN);
 	if ( SITECOOKIEPATH != COOKIEPATH )
 		setcookie(TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN);
@@ -300,7 +309,7 @@ function widget_wp_sidebarlogin_check() {
 		$myerrors = new WP_Error();
 		
 		nocache_headers();
-		
+
 		$secure_cookie = '';
 		
 		$redir = trim(stripslashes(get_option('sidebarlogin_login_redirect')));
@@ -332,12 +341,12 @@ function widget_wp_sidebarlogin_check() {
 		$redirect_to = apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user);
 
 		if ( $user && !is_wp_error($user) ) {
-			if ( isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE]) )
+			/*if ( isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE]) )
 				$myerrors->add('test_cookie', __("<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href='http://www.google.com/cookies.html'>enable cookies</a> to use WordPress."));
-			else {
+			else {*/
 				wp_safe_redirect($redirect_to);
-				exit();
-			}
+				exit;
+			//}
 		} elseif ($user) {
 			$myerrors = $user;
 			if ( empty($_POST['log']) && empty($_POST['pwd']) ) {
