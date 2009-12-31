@@ -3,10 +3,10 @@ Contributors: jolley_small
 Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
-Tested up to: 2.8
-Stable tag: 2.2.7
+Tested up to: 2.9
+Stable tag: 2.2.8
 
-Adds a sidebar widget to let users login.
+Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
 
 == Description ==
 
@@ -35,9 +35,11 @@ Danish translation by Per Bovbjerg
 Portuguese translation by Alvaro Becker
 Polish translation by merito
 Polish (2) translation by Darek Wapinski
-Icelandic translation by Hákon Ásgeirsson
+Icelandic translation by Hákon Ásgeirsson
 Arabic translation by khalid
 Persian(farsi) translation Amir Beitollahi
+Turkish translation by Muzo B
+Chinese translation by seven - http://www.anchuang.org
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 
@@ -60,6 +62,14 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+= 2.2.8 =
+*	Min level setting for links. Add user level after |true when defining the logged in links.
+*	Moved 'settings' from tools to settings.
+*	Encoded ampersand for valid markup
+*	Moved Labels about
+*	Fixed SSL url
+*	Reusable widget
 
 = 2.2.6 =
 *	Added changelog to readme.

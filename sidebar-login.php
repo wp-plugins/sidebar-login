@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.7
+Version: 2.2.8
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -13,27 +13,12 @@ if ( ! defined( 'WP_CONTENT_URL' ) ) {
 	if ( defined( 'WP_SITEURL' ) ) define( 'WP_CONTENT_URL', WP_SITEURL . '/wp-content' );
 	else define( 'WP_CONTENT_URL', get_option( 'url' ) . '/wp-content' );
 }
-if ( ! defined( 'WP_CONTENT_DIR' ) ) define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 if ( ! defined( 'WP_PLUGIN_URL' ) ) define( 'WP_PLUGIN_URL', WP_CONTENT_URL. '/plugins' );
-if ( ! defined( 'WP_PLUGIN_DIR' ) ) define( 'WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins' );
 
 load_plugin_textdomain('sblogin', WP_PLUGIN_URL.'/sidebar-login/langs/', 'sidebar-login/langs/');
 
 function wp_sidebarlogin_menu() {
-	add_management_page(__('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 9,'Sidebar Login', 'wp_sidebarlogin_admin');
-}
-
-if (!function_exists('wp_sidebarlogin_magic')) {
-function wp_sidebarlogin_magic() { 
-	function stripit($in) {
-		if (!is_array($in)) $out = stripslashes($in); else $out = $in;
-		return $out;
-	}
-	$_GET = array_map('stripit', $_GET); 
-	$_POST = array_map('stripit', $_POST);
-	$_REQUEST = array_map('stripit', $_REQUEST); 
-	return;
-}
+	add_submenu_page('options-general.php', __('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 9,'Sidebar Login', 'wp_sidebarlogin_admin');
 }
 
 if (!function_exists('is_ssl')) :
@@ -45,12 +30,11 @@ endif;
 function wp_sidebarlogin_admin(){
 	// Update options
 	if ($_POST) {
-		wp_sidebarlogin_magic();
-		update_option('sidebarlogin_login_redirect', $_POST['sidebarlogin_login_redirect']);
-		update_option('sidebarlogin_logout_redirect', $_POST['sidebarlogin_logout_redirect']);
-		update_option('sidebarlogin_register_link', $_POST['sidebarlogin_register_link']);
-		update_option('sidebarlogin_forgotton_link', $_POST['sidebarlogin_forgotton_link']);
-		update_option('sidebarlogin_logged_in_links', $_POST['sidebarlogin_logged_in_links']);
+		update_option('sidebarlogin_login_redirect', stripslashes($_POST['sidebarlogin_login_redirect']));
+		update_option('sidebarlogin_logout_redirect', stripslashes($_POST['sidebarlogin_logout_redirect']));
+		update_option('sidebarlogin_register_link', stripslashes($_POST['sidebarlogin_register_link']));
+		update_option('sidebarlogin_forgotton_link', stripslashes($_POST['sidebarlogin_forgotton_link']));
+		update_option('sidebarlogin_logged_in_links', stripslashes($_POST['sidebarlogin_logged_in_links']));
 		echo '<div id="message"class="updated fade">';	
 		_e('<p>Changes saved</p>',"sblogin");			
 		echo '</div>';
@@ -65,7 +49,7 @@ function wp_sidebarlogin_admin(){
 	<div class="wrap alternate">
         <h2><?php _e('Sidebar Login',"sblogin"); ?></h2>
         <br class="a_break" style="clear: both;"/>
-        <form action="?page=Sidebar Login" method="post">
+        <form action="options-general.php?page=Sidebar%20Login" method="post">
             <table class="niceblue form-table">
                 <tr>
                     <th scope="col"><?php _e('Login redirect URL',"sblogin"); ?>:</th>
@@ -91,8 +75,8 @@ function wp_sidebarlogin_admin(){
                 </tr>
                 <tr>
                     <th scope="col"><?php _e('Logged in links',"sblogin"); ?>:</th>
-                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e('One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. You can also type <code>%USERNAME%</code> which will be replaced by the user\'s username. Default: <br/>&lt;a href="','sblogin');
-                    echo get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;'; ?></span></td>
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e("One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. If you add a further <code>|USER LEVEL</code> the link will only be shown to users with levels equal to or greater than those defined. See <a href='http://codex.wordpress.org/Roles_and_Capabilities' target='_blank'>http://codex.wordpress.org/Roles_and_Capabilities</a> for more info on roles and Capabilities.<br/> You can also type <code>%USERNAME%</code> which will be replaced by the user's username. Default:",'sblogin');
+                    echo '<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;'; ?></span></td>
                 </tr>
             </table>
             <p class="submit"><input type="submit" value="<?php _e('Save Changes',"sblogin"); ?>" /></p>
@@ -162,7 +146,12 @@ function widget_wp_sidebarlogin($args) {
 			if (sizeof($links)>0)
 			foreach ($links as $l) {
 				$link = explode('|',$l);
-				if (isset($link[1]) && strtolower(trim($link[1]))=='true' && $level!=10) continue; 
+				if (isset($link[2]) && is_numeric(intval(trim($link[2]))) && intval(trim($link[2])) <= 10 ) { // Thanks to John from http://www.area-europa.es/
+					$req_level = intval(trim($link[2]));
+				} else {
+					$req_level=10;
+				}
+				if (isset($link[1]) && strtolower(trim($link[1]))=='true' && $level < $req_level) continue; 
 				else {
 					// Parse %USERNAME%
 					$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
@@ -214,8 +203,8 @@ function widget_wp_sidebarlogin($args) {
 			// login form		
 			echo '<form method="post" action="'.wp_sidebarlogin_current_url().'">';
 			?>
-			<p><label for="user_login"><?php echo $theusername; ?><br/><input name="log" value="<?php echo attribute_escape(stripslashes($_POST['log'])); ?>" class="mid" id="user_login" type="text" /></label></p>
-			<p><label for="user_pass"><?php echo $thepassword; ?><br/><input name="pwd" class="mid" id="user_pass" type="password" /></label></p>			
+			<p><label for="user_login"><?php echo $theusername; ?></label><br/><input name="log" value="<?php echo attribute_escape(stripslashes($_POST['log'])); ?>" class="mid" id="user_login" type="text" /></p>
+			<p><label for="user_pass"><?php echo $thepassword; ?></label><br/><input name="pwd" class="mid" id="user_pass" type="password" /></p>			
 
 			<?php
 			// OpenID Plugin (http://wordpress.org/extend/plugins/openid/) Integration
@@ -235,7 +224,7 @@ function widget_wp_sidebarlogin($args) {
 			
 			?>
 			
-			<p class="rememberme"><label for="rememberme"><input name="rememberme" class="checkbox" id="rememberme" value="forever" type="checkbox" /> <?php echo $theremember; ?></label></p>
+			<p class="rememberme"><input name="rememberme" class="checkbox" id="rememberme" value="forever" type="checkbox" /> <label for="rememberme"><?php echo $theremember; ?></label></p>
 			<p class="submit"><input type="submit" name="wp-submit" id="wp-submit" value="<?php echo $thelogin; ?> &raquo;" />
 			
 			<input type="hidden" name="sidebarlogin_posted" value="1" />
@@ -283,10 +272,33 @@ function widget_wp_sidebarlogin($args) {
 		echo $after_widget;
 }
 
-function widget_wp_sidebarlogin_init() {
-	if ( !function_exists('register_sidebar_widget') ) return;
-	// Register widget for use
-	register_sidebar_widget(array('Sidebar Login', 'widgets'), 'widget_wp_sidebarlogin');
+if (class_exists('WP_Widget')) {
+	
+	function widget_wp_sidebarlogin_init() {
+		// New Style widgets
+		class SidebarLoginMultiWidget extends WP_Widget {
+		    function SidebarLoginMultiWidget() {  
+		        $widget_ops = array('description' => __( 'Sidebar Login.','sblogin') );
+				$this->WP_Widget('wp_sidebarlogin', __('Sidebar Login','sblogin'), $widget_ops);  
+		    }
+		    function widget($args, $instance) {    
+		        
+		        widget_wp_sidebarlogin($args);
+		
+		    }
+		} 
+		register_widget('SidebarLoginMultiWidget');
+	}
+	add_action('init', 'widget_wp_sidebarlogin_init', 1);
+	
+} else {
+	// Legacy Widgets
+	function widget_wp_sidebarlogin_init() {
+		if ( !function_exists('register_sidebar_widget') ) return;
+		// Register widget for use
+		register_sidebar_widget(array('Sidebar Login', 'widgets'), 'widget_wp_sidebarlogin');
+	}
+	add_action('widgets_init', 'widget_wp_sidebarlogin_init');
 }
 
 function widget_wp_sidebarlogin_check() {
@@ -297,6 +309,8 @@ function widget_wp_sidebarlogin_check() {
 	add_option('sidebarlogin_register_link','yes','no');
 	add_option('sidebarlogin_forgotton_link','yes','no');
 	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard','sblogin')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile','sblogin')."</a>",'no');
+
+echo COOKIE_DOMAIN;
 
 	// Set a cookie now to see if they are supported by the browser.
 	setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN);
@@ -318,7 +332,7 @@ function widget_wp_sidebarlogin_check() {
 
 		// If the user wants ssl but the session is not ssl, force a secure cookie.
 		if ( !empty($_POST['log']) && !force_ssl_admin() ) {
-			$user_name = sanitize_user($_POST['log']);
+			$user_name = sanitize_user(stripslashes($_POST['log']));
 			if ( $user = get_userdatabylogin($user_name) ) {
 				if ( get_user_option('use_ssl', $user->ID) ) {
 					$secure_cookie = true;
@@ -333,17 +347,13 @@ function widget_wp_sidebarlogin_check() {
 				$redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
 		}
 
-		if ( !$secure_cookie && is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) )
-			$secure_cookie = false;
+		if ( !$secure_cookie && is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) ) $secure_cookie = false;
 
 		$user = wp_signon('', $secure_cookie);
 
 		$redirect_to = apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user);
 
 		if ( $user && !is_wp_error($user) ) {
-			/*if ( isset($_POST['testcookie']) && empty($_COOKIE[TEST_COOKIE]) )
-				$myerrors->add('test_cookie', __("<strong>ERROR</strong>: Cookies are blocked or not supported by your browser. You must <a href='http://www.google.com/cookies.html'>enable cookies</a> to use WordPress."));
-			else {*/
 				wp_safe_redirect($redirect_to);
 				exit;
 			//}
@@ -372,7 +382,7 @@ function wp_sidebarlogin_current_url($url = '') {
 	}
 	elseif (is_single() || is_page())
 	{
-		$pageURL = get_permalink($post->ID);
+		$pageURL = get_permalink($wp_query->post->ID);
 	}
 	elseif (is_category()) 
 	{
@@ -412,7 +422,7 @@ function wp_sidebarlogin_current_url($url = '') {
 	{
 		$pageURL = get_bloginfo('wpurl');
 		if ("/" != substr($pageURL, -1)) $pageURL = $pageURL . "/";
-		$pageURL .= '?s='.$_REQUEST['s'].'';
+		$pageURL .= '?s='.stripslashes(strip_tags($_REQUEST['s'])).'';
 	}
 	
 	if (!$pageURL || $pageURL=="" || !is_string($pageURL)) {
@@ -440,16 +450,15 @@ function wp_sidebarlogin_current_url($url = '') {
 				if (substr($pageURL,-1)=='/') 
 					$pageURL = substr($pageURL,0,-1);
 			
-			$rand = (!strpos($pageURL,'?')) ? '?_login='.$rand_string : '&_login='.$rand_string;
+			$rand = (!strpos($pageURL,'?')) ? '?_login='.$rand_string : '&amp;_login='.$rand_string;
 			$pageURL .= $rand;
 		}	
-		//$pageURL .='#login';
 	}
 	
 	if ( force_ssl_login() || force_ssl_admin() ) {
-	    $pageURL = str_replace( 'http://', 'https://', get_option('siteurl') );
+	    $pageURL = str_replace( 'http://', 'https://', $pageURL );
 	}
-		
+	
 	return $pageURL;
 }
 endif;
@@ -463,6 +472,5 @@ function wp_sidebarlogin_css() {
 // Run code and init
 add_action('wp_print_styles', 'wp_sidebarlogin_css');
 add_action('init', 'widget_wp_sidebarlogin_check',0);
-add_action('widgets_init', 'widget_wp_sidebarlogin_init');
 add_action('admin_menu', 'wp_sidebarlogin_menu');
 ?>
