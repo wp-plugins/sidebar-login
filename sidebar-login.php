@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.8
+Version: 2.2.9
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -309,8 +309,6 @@ function widget_wp_sidebarlogin_check() {
 	add_option('sidebarlogin_register_link','yes','no');
 	add_option('sidebarlogin_forgotton_link','yes','no');
 	add_option('sidebarlogin_logged_in_links', "<a href=\"".get_bloginfo('wpurl')."/wp-admin/\">".__('Dashboard','sblogin')."</a>\n<a href=\"".get_bloginfo('wpurl')."/wp-admin/profile.php\">".__('Profile','sblogin')."</a>",'no');
-
-echo COOKIE_DOMAIN;
 
 	// Set a cookie now to see if they are supported by the browser.
 	setcookie(TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN);
