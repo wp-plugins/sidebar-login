@@ -4,7 +4,7 @@ Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
 Tested up to: 3.0
-Stable tag: 2.2.9
+Stable tag: 2.2.10
 
 Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
 
@@ -14,32 +14,32 @@ Sidebar-Login has both a widget and a template tag to allow you to have a login 
 
 It lets users login, and then redirects them back to the page they logged in from rather than the backend, it also shows error messages.
 
-You can configure the plugin in <code>Admin > Tools > Sidebar Login</code> after installing it.
+You can configure the plugin in <code>Admin > Appearance > Sidebar Login</code> after installing it.
 
 = Localization Files =
 
-Czech Translation - http://wordpress.blog.mantlik.cz/plugins/sblogin-cs/
-Catalan Translation by Marc Vinyals
-French Translation by Andy
-Estonian Translation by Marko Punnar
-Dutch Translation by Ruben Janssen
-German Translation by GhostLyrics
-Italian Translation by Alessandro Spadavecchia
-Hungarian translation by Laszlo Dvornik
-Hungarian (2) translation by Balint Vereskuti
-Russian translation by Fat Cow (http://www.fatcow.com)
-Romanian translation by Victor Osorhan
-Spanish translation by Tribak (http://blog.tribak.org/sidebar-login-es_es/)
-Spanish (2) translation by Ricardo Vilella (http://www.ifconfig.com.ar/general/traduccion-al-espanol-del-plugin-sidebar-login-para-wordpress/)
-Danish translation by Per Bovbjerg
-Portuguese translation by Alvaro Becker
-Polish translation by merito
-Polish (2) translation by Darek Wapinski
-Icelandic translation by Hákon Ásgeirsson
-Arabic translation by khalid
-Persian(farsi) translation Amir Beitollahi
-Turkish translation by Muzo B
-Chinese translation by seven - http://www.anchuang.org
+*	Czech Translation - http://wordpress.blog.mantlik.cz/plugins/sblogin-cs/
+*	Catalan Translation by Marc Vinyals
+*	French Translation by Andy
+*	Estonian Translation by Marko Punnar
+*	Dutch Translation by Ruben Janssen
+*	German Translation by GhostLyrics
+*	Italian Translation by Alessandro Spadavecchia
+*	Hungarian translation by Laszlo Dvornik
+*	Hungarian (2) translation by Balint Vereskuti
+*	Russian translation by Fat Cow (http://www.fatcow.com)
+*	Romanian translation by Victor Osorhan
+*	Spanish translation by Tribak (http://blog.tribak.org/sidebar-login-es_es/)
+*	Spanish (2) translation by Ricardo Vilella (http://www.ifconfig.com.ar/general/traduccion-al-espanol-del-plugin-sidebar-login-para-wordpress/)
+*	Danish translation by Per Bovbjerg
+*	Portuguese translation by Alvaro Becker
+*	Polish translation by merito
+*	Polish (2) translation by Darek Wapinski
+*	Icelandic translation by Hákon Ásgeirsson
+*	Arabic translation by khalid
+*	Persian(farsi) translation Amir Beitollahi
+*	Turkish translation by Muzo B
+*	Chinese translation by seven - http://www.anchuang.org
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 
