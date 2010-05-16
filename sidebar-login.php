@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.9
+Version: 2.2.10
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -17,8 +17,9 @@ if ( ! defined( 'WP_PLUGIN_URL' ) ) define( 'WP_PLUGIN_URL', WP_CONTENT_URL. '/p
 
 load_plugin_textdomain('sblogin', WP_PLUGIN_URL.'/sidebar-login/langs/', 'sidebar-login/langs/');
 
+
 function wp_sidebarlogin_menu() {
-	add_submenu_page('options-general.php', __('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 9,'Sidebar Login', 'wp_sidebarlogin_admin');
+	add_submenu_page('themes.php', __('Sidebar Login','sblogin'), __('Sidebar Login','sblogin'), 'manage_options','sidebar-login', 'wp_sidebarlogin_admin');
 }
 
 if (!function_exists('is_ssl')) :
@@ -49,7 +50,7 @@ function wp_sidebarlogin_admin(){
 	<div class="wrap alternate">
         <h2><?php _e('Sidebar Login',"sblogin"); ?></h2>
         <br class="a_break" style="clear: both;"/>
-        <form action="options-general.php?page=Sidebar%20Login" method="post">
+        <form action="themes.php?page=sidebar-login" method="post">
             <table class="niceblue form-table">
                 <tr>
                     <th scope="col"><?php _e('Login redirect URL',"sblogin"); ?>:</th>
@@ -75,7 +76,7 @@ function wp_sidebarlogin_admin(){
                 </tr>
                 <tr>
                     <th scope="col"><?php _e('Logged in links',"sblogin"); ?>:</th>
-                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e("One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. If you add a further <code>|USER LEVEL</code> the link will only be shown to users with levels equal to or greater than those defined. See <a href='http://codex.wordpress.org/Roles_and_Capabilities' target='_blank'>http://codex.wordpress.org/Roles_and_Capabilities</a> for more info on roles and Capabilities.<br/> You can also type <code>%USERNAME%</code> which will be replaced by the user's username. Default:",'sblogin');
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e("One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. If you add a further <code>|USER LEVEL</code> the link will only be shown to users with levels equal to or greater than those defined. See <a href='http://codex.wordpress.org/Roles_and_Capabilities' target='_blank'>http://codex.wordpress.org/Roles_and_Capabilities</a> for more info on roles and Capabilities.<br/> You can also type <code>%USERNAME%</code> and <code>%USERID%</code> which will be replaced by the user info. Default:",'sblogin');
                     echo '<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/"&gt;Dashboard&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;Profile&lt;/a&gt;'; ?></span></td>
                 </tr>
             </table>
@@ -140,23 +141,29 @@ function widget_wp_sidebarlogin($args) {
 			
 			if(isset($current_user->user_level) && $current_user->user_level) $level = $current_user->user_level;
 					
-			$links = do_shortcode(get_option('sidebarlogin_logged_in_links'));
+			$links = do_shortcode(trim(get_option('sidebarlogin_logged_in_links')));
 			
 			$links = explode("\n", $links);
 			if (sizeof($links)>0)
 			foreach ($links as $l) {
-				$link = explode('|',$l);
-				if (isset($link[2]) && is_numeric(intval(trim($link[2]))) && intval(trim($link[2])) <= 10 ) { // Thanks to John from http://www.area-europa.es/
-					$req_level = intval(trim($link[2]));
-				} else {
-					$req_level=10;
-				}
-				if (isset($link[1]) && strtolower(trim($link[1]))=='true' && $level < $req_level) continue; 
-				else {
-					// Parse %USERNAME%
-					$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
-					$link[0] = str_replace('%username%',$current_user->user_login,$link[0]);
-					echo '<li class="page_item">'.$link[0].'</li>';
+				$l = trim($l);
+				if (!empty($l)) {
+					$link = explode('|',$l);
+					if (isset($link[2]) && is_numeric(intval(trim($link[2]))) && intval(trim($link[2])) <= 10 ) { // Thanks to John from http://www.area-europa.es/
+						$req_level = intval(trim($link[2]));
+					} else {
+						$req_level=10;
+					}
+					if (isset($link[1]) && strtolower(trim($link[1]))=='true' && $level < $req_level) continue; 
+					else {
+						// Parse %USERNAME%
+						$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
+						$link[0] = str_replace('%username%',$current_user->user_login,$link[0]);
+						// Parse %USERID%
+						$link[0] = str_replace('%USERID%',$current_user->ID,$link[0]);
+						$link[0] = str_replace('%userid%',$current_user->ID,$link[0]);
+						echo '<li class="page_item">'.$link[0].'</li>';
+					}
 				}
 			}
 			

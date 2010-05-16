@@ -3,7 +3,7 @@ Contributors: jolley_small
 Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
-Tested up to: 2.9
+Tested up to: 3.0
 Stable tag: 2.2.9
 
 Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
@@ -62,6 +62,13 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+= 2.2.10 =
+*	Moved settings to appearance menu
+*	Changed min user level to capilbilty 'manage_options'
+*	Fixed menu showing in wordpress 3.0
+*	Added %USERID% for links
+*	Fixed white space bug for link options
 
 = 2.2.8 =
 *	Min level setting for links. Add user level after |true when defining the logged in links.

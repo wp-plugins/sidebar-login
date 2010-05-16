@@ -6,6 +6,9 @@
 .widget_wp_sidebarlogin .avatar_container, #sidebar-login .avatar_container {
 	float:left;
 }
+.widget_wp_sidebarlogin ul {
+	list-style: none outside !important;
+}
 .widget_wp_sidebarlogin .avatar_container img, #sidebar-login .avatar_container img {
 	padding: 3px;
 	border: 1px solid #ddd;
