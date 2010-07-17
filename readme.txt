@@ -4,7 +4,7 @@ Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.5
 Tested up to: 3.0
-Stable tag: 2.2.10
+Stable tag: 2.2.12
 
 Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
 
@@ -37,9 +37,10 @@ You can configure the plugin in <code>Admin > Appearance > Sidebar Login</code> 
 *	Polish (2) translation by Darek Wapinski
 *	Icelandic translation by Hákon Ásgeirsson
 *	Arabic translation by khalid
-*	Persian(farsi) translation Amir Beitollahi
 *	Turkish translation by Muzo B
 *	Chinese translation by seven - http://www.anchuang.org
+*	Persian by Gonahkar
+*	Persian (farsi, alt) translation Amir Beitollahi
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 
@@ -62,6 +63,13 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+= 2.2.12 =
+*	Headers sent bugs fixed
+*	Avatar display option
+
+= 2.2.11 =
+*	More/Updated langs
 
 = 2.2.10 =
 *	Moved settings to appearance menu
