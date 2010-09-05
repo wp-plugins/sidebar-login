@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.13
+Version: 2.2.14
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -94,7 +94,7 @@ function wp_sidebarlogin_admin(){
                 </tr>
                 <tr>
                     <th scope="col"><?php _e('Logged in links',"sblogin"); ?>:</th>
-                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e("One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users. If you add a further <code>|USER CAPABILITY</code> the link will only be shown to users with that capability. See <a href='http://codex.wordpress.org/Roles_and_Capabilities' target='_blank'>http://codex.wordpress.org/Roles_and_Capabilities</a> for more info on roles and Capabilities.<br/> You can also type <code>%USERNAME%</code> and <code>%USERID%</code> which will be replaced by the user info. Default:",'sblogin');
+                    <td><textarea name="sidebarlogin_logged_in_links" rows="3" cols="80" /><?php echo $sidebarlogin_logged_in_links; ?></textarea><br/><span class="setting-description"><?php _e("One link per line. Note: Logout link will always show regardless. Tip: Add <code>|true</code> after a link to only show it to admin users or alternatively use a <code>|user_capability</code> and the link will only be shown to users with that capability. See <a href='http://codex.wordpress.org/Roles_and_Capabilities' target='_blank'>http://codex.wordpress.org/Roles_and_Capabilities</a> for more info on roles and Capabilities.<br/> You can also type <code>%USERNAME%</code> and <code>%USERID%</code> which will be replaced by the user info. Default:",'sblogin');
                     echo '<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/"&gt;'. __('Dashboard', 'sblogin') .'&lt;/a&gt;<br/>&lt;a href="'.get_bloginfo('wpurl').'/wp-admin/profile.php"&gt;'. __('Profile', 'sblogin') .'&lt;/a&gt;'; ?></span></td>
                 </tr>
                 <tr>
@@ -177,21 +177,21 @@ function widget_wp_sidebarlogin($args) {
 				$l = trim($l);
 				if (!empty($l)) {
 					$link = explode('|',$l);
-					if (isset($link[2])) {
-						$cap = trim($link[2]);
-						if (!current_user_can( $cap )) continue;
+					if (isset($link[1])) {
+						$cap = strtolower(trim($link[1]));
+						if ($cap=='true') {
+							if (!current_user_can( 'manage_options' )) continue;
+						} else {
+							if (!current_user_can( $cap )) continue;
+						}
 					}
-					// Admin check
-					if (isset($link[1]) && strtolower(trim($link[1]))=='true' && !current_user_can('manage_options') ) continue; 
-					else {
-						// Parse %USERNAME%
-						$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
-						$link[0] = str_replace('%username%',$current_user->user_login,$link[0]);
-						// Parse %USERID%
-						$link[0] = str_replace('%USERID%',$current_user->ID,$link[0]);
-						$link[0] = str_replace('%userid%',$current_user->ID,$link[0]);
-						echo '<li class="page_item">'.$link[0].'</li>';
-					}
+					// Parse %USERNAME%
+					$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
+					$link[0] = str_replace('%username%',$current_user->user_login,$link[0]);
+					// Parse %USERID%
+					$link[0] = str_replace('%USERID%',$current_user->ID,$link[0]);
+					$link[0] = str_replace('%userid%',$current_user->ID,$link[0]);
+					echo '<li class="page_item">'.$link[0].'</li>';
 				}
 			}
 			
