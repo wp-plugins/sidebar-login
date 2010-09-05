@@ -41,6 +41,7 @@ You can configure the plugin in <code>Admin > Appearance > Sidebar Login</code> 
 *	Chinese translation by seven - http://www.anchuang.org
 *	Persian by Gonahkar
 *	Persian (farsi, alt) translation Amir Beitollahi
+*	Russian translation by Vorotnikov Boris
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 
@@ -63,6 +64,11 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+*	Added Russian translation
+
+= 2.2.13 =
+*	Updated translations
 
 = 2.2.12 =
 *	Headers sent bugs fixed
