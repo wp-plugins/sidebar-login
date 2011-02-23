@@ -3,8 +3,8 @@ Contributors: jolley_small
 Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.8
-Tested up to: 3.0
-Stable tag: 2.2.14
+Tested up to: 3.1
+Stable tag: 2.2.15
 
 Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
 
