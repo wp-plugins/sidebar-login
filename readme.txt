@@ -43,6 +43,10 @@ You can configure the plugin in <code>Admin > Appearance > Sidebar Login</code> 
 *	Persian (farsi, alt) translation Amir Beitollahi
 *	Russian translation by Vorotnikov Boris
 *	Croatian translation by Zarko Pintar
+*	Indonesian translation by Masino Sinaga (http://www.masinosinaga.com)
+*	Indonesian (2) translation by Hendry Lee (http://kelayang.com)
+*	Lithuanian translation by Justas Kalinauskas
+*	Hebrew translation by Yosi (http://www.thefinancialchef.com/blog/)
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 
@@ -65,6 +69,11 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+= 2.2.15 =
+*	FORCE_SSL_LOGIN/ADMIN double login issue fix (Thanks to bmaupin)
+*	Only added openid styling if other plugin is installed
+*	Added more languages
 
 = 2.2.14 =
 *	Further revised the |true / |user_capability code - only need to use one or the other now.

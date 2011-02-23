@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.2.14
+Version: 2.2.15
 Author: Mike Jolley
 Author URI: http://blue-anvil.com
 */
@@ -238,18 +238,22 @@ function widget_wp_sidebarlogin($args) {
 				if ( !empty($messages) )
 					echo '<p class="message">' . apply_filters('login_messages', $messages) . "</p>\n";
 			}
-			// login form		
-			echo '<form method="post" action="'.wp_sidebarlogin_current_url().'">';
+			// login form
+			$sidebarlogin_post_url = wp_sidebarlogin_current_url();
+			if (force_ssl_login() || force_ssl_admin()) {
+				$sidebarlogin_post_url = str_replace('http://', 'https://', $sidebarlogin_post_url);
+			}	
+			echo '<form method="post" action="'.$sidebarlogin_post_url.'">';
 			?>
 			<p><label for="user_login"><?php echo $theusername; ?></label><br/><input name="log" value="<?php if (isset($_POST['log'])) echo esc_attr(stripslashes($_POST['log'])); ?>" class="mid" id="user_login" type="text" /></p>
 			<p><label for="user_pass"><?php echo $thepassword; ?></label><br/><input name="pwd" class="mid" id="user_pass" type="password" /></p>			
 
 			<?php
+			echo '<input type="hidden" name="redirect_to" value="'.wp_sidebarlogin_current_url().'" />';
+			
 			// OpenID Plugin (http://wordpress.org/extend/plugins/openid/) Integration
 			if (function_exists('openid_wp_login_form')) {
-			
-				echo '<input type="hidden" name="redirect_to" value="'.wp_sidebarlogin_current_url().'" />';
-				
+
 				//openid_wp_login_form();
 				echo '<hr id="openid_split" />';
 			
@@ -370,6 +374,7 @@ function widget_wp_sidebarlogin_check() {
 		
 		$redir = trim(stripslashes(get_option('sidebarlogin_login_redirect')));
 		if ($redir && !empty($redir)) $redirect_to = $redir;
+		elseif (isset($_REQUEST['redirect_to'])) $redirect_to = $_REQUEST['redirect_to'];
 		else $redirect_to = wp_sidebarlogin_current_url('nologout');
 
 		// If the user wants ssl but the session is not ssl, force a secure cookie.
@@ -398,7 +403,6 @@ function widget_wp_sidebarlogin_check() {
 		if ( $user && !is_wp_error($user) ) {
 				wp_safe_redirect($redirect_to);
 				exit;
-			//}
 		} elseif ($user) {
 			$myerrors = $user;
 			if ( empty($_POST['log']) && empty($_POST['pwd']) ) {
@@ -497,10 +501,6 @@ function wp_sidebarlogin_current_url($url = '') {
 		}	
 	}
 	
-	if ( force_ssl_login() || force_ssl_admin() ) {
-	    $pageURL = str_replace( 'http://', 'https://', $pageURL );
-	}
-	
 	return $pageURL;
 }
 endif;
@@ -514,8 +514,22 @@ function wp_sidebarlogin_css() {
     wp_enqueue_style( 'wp_sidebarlogin_css_styles');
 }
 
+function wp_sidebarlogin_openid_styling() {
+	?>
+	<style type="text/css">
+		.widget_wp_sidebarlogin #openid_field {
+			background-image:url(<?php echo WP_PLUGIN_URL; ?>/openid/f/openid.gif);
+			background-position:3px 50%;
+			background-repeat:no-repeat;
+			padding-left:21px !important;
+		}
+	</style>
+	<?php
+}
+
 // Run code and init
 add_action('wp_print_styles', 'wp_sidebarlogin_css');
 add_action('init', 'widget_wp_sidebarlogin_check', 0);
 add_action('admin_menu', 'wp_sidebarlogin_menu');
+if (function_exists('openid_wp_login_form')) add_action('wp_head', 'wp_sidebarlogin_openid_styling');
 ?>
