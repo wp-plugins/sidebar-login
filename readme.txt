@@ -3,7 +3,7 @@ Contributors: jolley_small
 Donate link: http://mikejolley.com/projects/sidebar-login-for-wordpress/
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.8
-Tested up to: 3.2
+Tested up to: 3.2.1
 Stable tag: 2.3
 
 Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
