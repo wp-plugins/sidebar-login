@@ -1,10 +1,10 @@
 === Plugin Name ===
 Contributors: jolley_small
-Donate link: http://blue-anvil.com/archives/wordpress-sidebar-login-2-optimised-for-wordpress-26
+Donate link: http://mikejolley.com/projects/sidebar-login-for-wordpress/
 Tags: login, sidebar, widget, sidebar login, meta, form, register
 Requires at least: 2.8
-Tested up to: 3.1
-Stable tag: 2.2.15
+Tested up to: 3.2
+Stable tag: 2.3
 
 Adds a sidebar widget to let users login. Displayed links can be changed from the <a href="options-general.php?page=Sidebar%20Login">settings page</a>.
 
@@ -14,9 +14,13 @@ Sidebar-Login has both a widget and a template tag to allow you to have a login 
 
 It lets users login, and then redirects them back to the page they logged in from rather than the backend, it also shows error messages.
 
-You can configure the plugin in <code>Admin > Appearance > Sidebar Login</code> after installing it.
+You can configure the plugin in <code>Admin > Settings > Sidebar Login</code> after installing it.
 
-= Localization Files =
+If you'd like to contribute to the plugin you can find it on GitHub: https://github.com/mikejolley/sidebar-login.
+
+== Localization ==
+
+Added localizations are listed below. If you want to contribute or improve a localisation, please contribute via GitHub (https://github.com/mikejolley/sidebar-login).
 
 *	Czech Translation - http://wordpress.blog.mantlik.cz/plugins/sblogin-cs/
 *	Catalan Translation by Marc Vinyals
@@ -47,6 +51,10 @@ You can configure the plugin in <code>Admin > Appearance > Sidebar Login</code> 
 *	Indonesian (2) translation by Hendry Lee (http://kelayang.com)
 *	Lithuanian translation by Justas Kalinauskas
 *	Hebrew translation by Yosi (http://www.thefinancialchef.com/blog/)
+*	Latvian translation by Reinis
+*	Hindi translation by Outshine Solutions (http://outshinesolutions.com/web-hosting/web-hosting-india.html)
+*	Bulgarian translation by Siteground (http://www.siteground.com)
+*	Greek translation by Meet-sos (wptips.thetida.gr)
 
 Note: Those with more than one translation are found in langs/alternate/. To use the alternatives move them from /alternate/ into /langs/.
 
@@ -69,6 +77,12 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+= 2.3 =
+*	Put the project on GitHub
+*	Added new localisations
+*	New options panel
+* 	AJAX Login
 
 = 2.2.15 =
 *	FORCE_SSL_LOGIN/ADMIN double login issue fix (Thanks to bmaupin)
