@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Adds a sidebar widget to let users login
-Version: 2.3.2
+Version: 2.3.3
 Author: Mike Jolley
 Author URI: http://mikejolley.com
 */
@@ -83,8 +83,8 @@ function widget_wp_sidebarlogin($args) {
 					}
 				}
 				// Parse %USERNAME%
-				$link[0] = str_replace('%USERNAME%',$current_user->user_login,$link[0]);
-				$link[0] = str_replace('%username%',$current_user->user_login,$link[0]);
+				$link[0] = str_replace('%USERNAME%',sanitize_title($current_user->user_login),$link[0]);
+				$link[0] = str_replace('%username%',sanitize_title($current_user->user_login),$link[0]);
 				// Parse %USERID%
 				$link[0] = str_replace('%USERID%',$current_user->ID,$link[0]);
 				$link[0] = str_replace('%userid%',$current_user->ID,$link[0]);
@@ -177,7 +177,7 @@ function widget_wp_sidebarlogin($args) {
 		}
 		if (get_option('sidebarlogin_forgotton_link')=='1') : 
 			
-			$links .= '<li><a href="'.get_bloginfo('wpurl').'/wp-login.php?action=lostpassword" rel="nofollow">'. $thelostpass .'</a></li>';
+			$links .= '<li><a href="'.wp_lostpassword_url().'" rel="nofollow">'. $thelostpass .'</a></li>';
 
 		endif; 
 		if ($links) echo '<ul class="sidebarlogin_otherlinks">'.$links.'</ul>';	
@@ -202,6 +202,13 @@ function widget_wp_sidebarlogin_init() {
 	wp_enqueue_script('jquery');
 	wp_enqueue_script('blockui');
 	wp_enqueue_script('sidebar-login');
+	
+	// Pass variables to script
+	$sidebar_login_params = array(
+		'ajax_url' 				=> admin_url('admin-ajax.php'),
+		'login_nonce' 			=> wp_create_nonce("sidebar-login-action")
+	);
+	wp_localize_script( 'sidebar-login', 'sidebar_login_params', $sidebar_login_params );
 	
 	// Register widget
 	class SidebarLoginMultiWidget extends WP_Widget {
@@ -238,16 +245,28 @@ function widget_wp_sidebarlogin_check() {
 		endif;
 
 		// Check for Secure Cookie
-		if ( is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) ) $secure_cookie = false;
-		else $secure_cookie = '';
+		$secure_cookie = '';
+		
+		// If the user wants ssl but the session is not ssl, force a secure cookie.
+		if ( !empty($_POST['log']) && !force_ssl_admin() ) {
+			$user_name = sanitize_user($_POST['log']);
+			if ( $user = get_userdatabylogin($user_name) ) {
+				if ( get_user_option('use_ssl', $user->ID) ) {
+					$secure_cookie = true;
+					force_ssl_admin(true);
+				}
+			}
+		}
+		
+		if ( !$secure_cookie && is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) )
+		$secure_cookie = false;
 
 		// Login
 		$user = wp_signon('', $secure_cookie);
 
 		// Redirect filter
 		if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
-		$redirect_to = apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user);
-
+		
 		// Check the username
 		if ( !$_POST['log'] ) :
 			$user = new WP_Error();
@@ -256,23 +275,11 @@ function widget_wp_sidebarlogin_check() {
 			$user = new WP_Error();
 			$user->add('empty_username', __('<strong>ERROR</strong>: Please enter your password.', 'sblogin'));
 		endif;
-
-		// Show result based on whether its by ajax or not
-		if (sidebar_login_is_ajax()) :
-			if ( !is_wp_error($user) ) :
-				echo 'SBL_SUCCESS';
-			else :
-				foreach ($user->errors as $error) {
-					echo $error[0];
-					break;
-				}
-			endif;
+		
+		// Redirect if successful
+		if ( !is_wp_error($user) ) :
+			wp_safe_redirect( apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user) );
 			exit;
-		else :
-			if ( !is_wp_error($user) ) :
-				wp_safe_redirect($redirect_to);
-				exit;
-			endif;
 		endif;
 		
 		$login_errors = $user;
@@ -282,12 +289,65 @@ function widget_wp_sidebarlogin_check() {
 add_action('init', 'widget_wp_sidebarlogin_check', 0);
 
 
-/* Detect AJAX login */
-if (!function_exists('sidebar_login_is_ajax')) {
-	function sidebar_login_is_ajax() {
-		if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') return true; else return false;
+/**
+ * Process ajax login
+ */
+add_action('wp_ajax_sidebar_login_process', 'sidebar_login_ajax_process');
+add_action('wp_ajax_nopriv_sidebar_login_process', 'sidebar_login_ajax_process');
+
+function sidebar_login_ajax_process() {
+
+	check_ajax_referer( 'sidebar-login-action', 'security' );
+	
+	// Get post data
+	$creds = array();
+	$creds['user_login'] 	= esc_attr($_POST['user_login']);
+	$creds['user_password'] = esc_attr($_POST['user_password']);
+	$creds['remember'] 		= esc_attr($_POST['remember']);
+	$redirect_to 			= esc_attr($_POST['redirect_to']);
+	
+	// Check for Secure Cookie
+	$secure_cookie = '';
+	
+	// If the user wants ssl but the session is not ssl, force a secure cookie.
+	if ( !empty($_POST['log']) && !force_ssl_admin() ) {
+		$user_name = sanitize_user($_POST['log']);
+		if ( $user = get_userdatabylogin($user_name) ) {
+			if ( get_user_option('use_ssl', $user->ID) ) {
+				$secure_cookie = true;
+				force_ssl_admin(true);
+			}
+		}
 	}
+	
+	if ( !$secure_cookie && is_ssl() && force_ssl_login() && !force_ssl_admin() && ( 0 !== strpos($redirect_to, 'https') ) && ( 0 === strpos($redirect_to, 'http') ) )
+	$secure_cookie = false;
+
+	// Login
+	$user = wp_signon($creds, $secure_cookie);
+	
+	// Redirect filter
+	if ( $secure_cookie && false !== strpos($redirect_to, 'wp-admin') ) $redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
+
+	// Result
+	$result = array();
+	
+	if ( !is_wp_error($user) ) :
+		$result['success'] = 1;
+		$result['redirect'] = $redirect_to;
+	else :
+		$result['success'] = 0;
+		foreach ($user->errors as $error) {
+			$result['error'] = $error[0];
+			break;
+		}
+	endif;
+	
+	echo json_encode($result);
+
+	die();
 }
+
 
 /* Get Current URL */
 if ( !function_exists('sidebar_login_current_url') ) {
