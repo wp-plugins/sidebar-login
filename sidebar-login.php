@@ -3,7 +3,7 @@
 Plugin Name: Sidebar Login
 Plugin URI: http://wordpress.org/extend/plugins/sidebar-login/
 Description: Easily add an ajax-enhanced login widget to your site's sidebar.
-Version: 2.3.5
+Version: 2.4
 Author: Mike Jolley
 Author URI: http://mikejolley.com
 */
@@ -95,7 +95,7 @@ function widget_wp_sidebarlogin($args) {
 		$redir = trim(stripslashes(get_option('sidebarlogin_logout_redirect')));
 		if (!$redir || empty($redir)) $redir = sidebar_login_current_url('nologout');
 		
-		echo '<li class="page_item"><a href="'.wp_logout_url($redir).'">'.$thelogout.'</a></li></ul>';
+		echo '<li class="page_item"><a href=" ' . wp_logout_url( $redir ) . '">' . $thelogout . '</a></li></ul>';
 		
 	} else {
 	
@@ -120,69 +120,51 @@ function widget_wp_sidebarlogin($args) {
 		// Get redirect URL
 		$redirect_to = trim(stripslashes(get_option('sidebarlogin_login_redirect')));
 		
-		if (empty($redirect_to)) :
-			if (isset($_REQUEST['redirect_to'])) 
+		if ( empty( $redirect_to ) ) {
+			if ( isset( $_REQUEST['redirect_to'] ) ) 
 				$redirect_to = esc_url( $_REQUEST['redirect_to'] );
 			else
 				$redirect_to = sidebar_login_current_url('nologout');
-		endif;
+		}
 		
-		if ( force_ssl_admin() ) $redirect_to = str_replace( 'http:', 'https:', $redirect_to );
+		if ( force_ssl_admin() ) 
+			$redirect_to = str_replace( 'http:', 'https:', $redirect_to );
 		
 		// login form
-		if (force_ssl_login() || force_ssl_admin()) $sidebarlogin_post_url = str_replace('http://', 'https://', sidebar_login_current_url()); else $sidebarlogin_post_url = sidebar_login_current_url();
-		?>
-		<form method="post" action="<?php echo $sidebarlogin_post_url; ?>">
+		$sidebarlogin_post_url = ( force_ssl_login() || force_ssl_admin() ) ? str_replace('http://', 'https://', sidebar_login_current_url() ) : sidebar_login_current_url();
 		
-			<p><label for="user_login"><?php echo $theusername; ?></label> <input name="log" value="<?php if (isset($_POST['log'])) echo esc_attr(stripslashes($_POST['log'])); ?>" class="text" id="user_login" type="text" /></p>
-			<p><label for="user_pass"><?php echo $thepassword; ?></label> <input name="pwd" class="text" id="user_pass" type="password" /></p>			
-	
-			<?php
-				// OpenID Plugin (http://wordpress.org/extend/plugins/openid/) Integration
-				if (function_exists('openid_wp_login_form')) :
-					echo '
-						<hr id="openid_split" />
-						<p>
-							<label for="openid_field">' . __('Or login using an <a href="http://openid.net/what/" title="Learn about OpenID">OpenID</a>', 'sblogin') . '</label>
-							<input type="text" name="openid_identifier" id="openid_field" class="input mid" value="" /></label>
-						</p>
-					';		
-				endif;
-			?>
-			
-			<p class="rememberme"><input name="rememberme" class="checkbox" id="rememberme" value="forever" type="checkbox" /> <label for="rememberme"><?php echo $theremember; ?></label></p>
-			
-			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" value="<?php _e('Login &raquo;', 'sblogin'); ?>" />
-				<input type="hidden" name="redirect_to" class="redirect_to" value="<?php echo $redirect_to; ?>" />
-				<input type="hidden" name="sidebarlogin_posted" value="1" />
-				<input type="hidden" name="testcookie" value="1" />
-			</p>
-			
-			<?php if (function_exists('fbc_init_auth')) do_action('fbc_display_login_button'); // Facebook Plugin ?>
+		$login_form_args = apply_filters( 'sidebar_login_form_args', array(
+	        'echo' 				=> true,
+	        'redirect' 			=> esc_attr( $redirect_to ), 
+	        'label_username' 	=> $theusername,
+	        'label_password' 	=> $thepassword,
+	        'label_remember' 	=> $theremember,
+	        'label_log_in' 		=> __('Login &raquo;', 'sblogin'),
+	        'remember' 			=> true,
+	        'value_remember' 	=> true 
+	    ) );
 		
-		</form>
-		<?php 			
+		wp_login_form( $login_form_args );
+			
 		// Output other links
 		$links = '';	
-		if (get_option('users_can_register') && get_option('sidebarlogin_register_link')=='1') { 
+		if ( get_option('users_can_register') && get_option('sidebarlogin_register_link') == '1' ) { 
 
-			if (!is_multisite()) {
-				
-				$links .= '<li><a href="'.get_bloginfo('wpurl').'/wp-login.php?action=register" rel="nofollow">'.$theregister.'</a></li>';
+			if ( ! is_multisite() ) {
+			
+				$links .= '<li><a href="' . apply_filters( 'sidebar_login_register_url', site_url('wp-login.php?action=register', 'login') ) . '" rel="nofollow">' . $theregister . '</a></li>';
 
 			} else {
 				
-				$links .= '<li><a href="'.get_bloginfo('wpurl').'/wp-signup.php" rel="nofollow">'.$theregister.'</a></li>';
+				$links .= '<li><a href="' . apply_filters( 'sidebar_login_register_url', site_url('wp-signup.php', 'login') ) . '" rel="nofollow">' . $theregister . '</a></li>';
 
 			}
 		}
-		if (get_option('sidebarlogin_forgotton_link')=='1') : 
-			
-			$links .= '<li><a href="'.wp_lostpassword_url().'" rel="nofollow">'. $thelostpass .'</a></li>';
+		if ( get_option( 'sidebarlogin_forgotton_link' ) == '1' )
+			$links .= '<li><a href="' . apply_filters( 'sidebar_login_lostpassword_url', wp_lostpassword_url() ) . '" rel="nofollow">' . $thelostpass . '</a></li>';
 
-		endif; 
-		if ($links) echo '<ul class="sidebarlogin_otherlinks">'.$links.'</ul>';	
+		if ($links)
+			echo '<ul class="sidebarlogin_otherlinks">' . $links . '</ul>';	
 	}		
 		
 	// echo widget closing tag
@@ -231,69 +213,8 @@ function widget_wp_sidebarlogin_init() {
 	register_widget('SidebarLoginMultiWidget');
 	
 }
+
 add_action('init', 'widget_wp_sidebarlogin_init', 1);
-
-/* Login Action */
-function widget_wp_sidebarlogin_check() {
-
-	if (isset($_POST['sidebarlogin_posted'])) {
-		
-		global $login_errors;
-		
-		// Get redirect URL
-		$redirect_to = trim(stripslashes(get_option('sidebarlogin_login_redirect')));
-		
-		if (empty($redirect_to)) :
-			if (isset($_REQUEST['redirect_to'])) 
-				$redirect_to = esc_attr( $_REQUEST['redirect_to'] );
-			else
-				$redirect_to = sidebar_login_current_url('nologout');
-		endif;
-
-		// Check for Secure Cookie
-		$secure_cookie = '';
-		
-		// If the user wants ssl but the session is not ssl, force a secure cookie.
-		if ( !empty($_POST['log']) && !force_ssl_admin() ) {
-			$user_name = sanitize_user($_POST['log']);
-			if ( $user = get_user_by('login', $user_name) ) {
-				if ( get_user_option('use_ssl', $user->ID) ) {
-					$secure_cookie = true;
-					force_ssl_admin(true);
-				}
-			}
-		}
-		
-		if ( force_ssl_admin() ) $secure_cookie = true;
-		if ( $secure_cookie=='' && force_ssl_login() ) $secure_cookie = false;
-
-		// Login
-		$user = wp_signon('', $secure_cookie);
-
-		// Redirect filter
-		if ( $secure_cookie && strstr($redirect_to, 'wp-admin') ) $redirect_to = str_replace('http:', 'https:', $redirect_to);
-		
-		// Check the username
-		if ( !$_POST['log'] ) :
-			$user = new WP_Error();
-			$user->add('empty_username', __('<strong>ERROR</strong>: Please enter a username.', 'sblogin'));
-		elseif ( !$_POST['pwd'] ) :
-			$user = new WP_Error();
-			$user->add('empty_username', __('<strong>ERROR</strong>: Please enter your password.', 'sblogin'));
-		endif;
-		
-		// Redirect if successful
-		if ( !is_wp_error($user) ) :
-			wp_safe_redirect( apply_filters('login_redirect', $redirect_to, isset( $redirect_to ) ? $redirect_to : '', $user) );
-			exit;
-		endif;
-		
-		$login_errors = $user;
-			
-	}
-}
-add_action('init', 'widget_wp_sidebarlogin_check', 0);
-
 
 /**
  * Process ajax login
@@ -338,7 +259,7 @@ function sidebar_login_ajax_process() {
 	// Result
 	$result = array();
 	
-	if ( !is_wp_error($user) ) :
+	if ( ! is_wp_error($user) ) :
 		$result['success'] = 1;
 		$result['redirect'] = $redirect_to;
 	else :
@@ -365,10 +286,9 @@ function sidebar_login_ajax_process() {
 if ( !function_exists('sidebar_login_current_url') ) {
 	function sidebar_login_current_url( $url = '' ) {
 	
-		$pageURL  = 'http://';
-		$pageURL .= $_SERVER['HTTP_HOST'];
-		$pageURL .= $_SERVER['REQUEST_URI'];
-		if ( force_ssl_admin() ) $pageURL = str_replace( 'http:', 'https:', $pageURL );
+		$pageURL  = force_ssl_admin() ? 'https://' : 'http://';
+		$pageURL .= esc_attr( $_SERVER['HTTP_HOST'] );
+		$pageURL .= esc_attr( $_SERVER['REQUEST_URI'] );
 	
 		if ($url != "nologout") {
 			if (!strpos($pageURL,'_login=')) {
@@ -378,6 +298,6 @@ if ( !function_exists('sidebar_login_current_url') ) {
 			}	
 		}
 		
-		return $pageURL;
+		return strip_tags( $pageURL );
 	}
 }

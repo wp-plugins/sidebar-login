@@ -2,9 +2,11 @@
 Contributors: mikejolley
 Donate link: http://mikejolley.com/projects/sidebar-login-for-wordpress/
 Tags: login, sidebar, widget, sidebar login, meta, form, register
-Requires at least: 2.8
-Tested up to: 3.3
-Stable tag: 2.3.5
+Requires at least: 3.0
+Tested up to: 3.4
+Stable tag: 2.4
+License: GPLv3
+License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 Easily add an ajax-enhanced login widget to your site's sidebar.
 
@@ -76,6 +78,16 @@ You will find a config page in tools/settings > Sidebar Login. Here you can set 
 2. After Login
 
 == Changelog ==
+
+= 2.4 =
+*	XSS Fix
+*	Added classes to tags in widget
+*	Improved/filtered register and lost password links
+*	Removed the outdated openid/fb code. Hook it in if you want it.
+*	Removed markup in favour of wp_login_form()
+
+= 2.3.6 =
+*	Sanitize REQUEST_URI/$pageURL
 
 = 2.3.5 =
 * 	Use jsonp to enable login from http to https
